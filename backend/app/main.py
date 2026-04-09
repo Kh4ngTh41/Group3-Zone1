@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from . import models
@@ -9,6 +10,7 @@ from .db import Base, engine, get_db
 from .guardrails import detect_emergency, safe_bot_message
 from .his_client import get_homepage_highlights, get_slots_by_specialty, list_specialties, reserve_slot
 from .metrics import get_metric_summary, record_metric
+
 from .schemas import (
     BookingRequest,
     BookingResponse,
@@ -18,11 +20,57 @@ from .schemas import (
     SpecialtyListResponse,
     TriageRequest,
     TriageResponse,
+    TransportChoiceRequest,
+    TransportChoiceResponse,
 )
-from .utils import mask_sensitive_text
-
 
 app = FastAPI(title="Vinmec AI Concierge API", version="0.1.0")
+
+@app.post("/api/transport/choose", response_model=TransportChoiceResponse)
+def choose_transport(payload: TransportChoiceRequest, db: Session = Depends(get_db)):
+    booking = db.query(models.Booking).filter(models.Booking.id == payload.booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Không tìm thấy booking")
+
+    mode = (payload.transport_mode or "").strip().lower()
+    if mode not in {"xanhsm", "tự đi", "tu di"}:
+        raise HTTPException(status_code=400, detail="Phương tiện không hợp lệ")
+    if not (payload.available_time or "").strip():
+        raise HTTPException(status_code=400, detail="Vui lòng nhập giờ rảnh")
+
+    normalized_mode = "tự đi" if mode == "tu di" else mode
+    pickup_address = (payload.pickup_address or "").strip()
+    if normalized_mode == "xanhsm" and not pickup_address:
+        raise HTTPException(status_code=400, detail="Vui lòng nhập địa chỉ đón khách để đặt xe XanhSM")
+
+    booking.transport_mode = normalized_mode
+    booking.available_time = payload.available_time.strip()
+    booking.pickup_address = pickup_address
+    db.commit()
+
+    final_message = (
+        "Đặt lịch và đặt xe XanhSM thành công. Xe sẽ đón bạn đúng giờ tại địa chỉ đã cung cấp."
+        if normalized_mode == "xanhsm"
+        else "Đặt lịch thành công. Mời quý khách đến đúng giờ hẹn để được phục vụ tốt nhất."
+    )
+    db.add(
+        models.Message(
+            conversation_id=booking.conversation_id,
+            role="assistant",
+            content=final_message,
+        )
+    )
+    db.commit()
+
+    return TransportChoiceResponse(
+        booking_id=booking.id,
+        transport_mode=booking.transport_mode,
+        available_time=booking.available_time,
+        pickup_address=booking.pickup_address,
+        status="saved",
+    )
+
+from .utils import mask_sensitive_text
 
 EMERGENCY_SPECIALTY_KEYWORDS = (
     "hồi sức",
@@ -45,6 +93,28 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    ensure_booking_schema_compat()
+
+
+def ensure_booking_schema_compat():
+    """Best-effort SQLite compatibility patch for existing local DB files."""
+    with engine.begin() as conn:
+        columns = {
+            row[1]
+            for row in conn.execute(text("PRAGMA table_info(bookings)")).fetchall()
+        }
+        if "transport_mode" not in columns:
+            conn.execute(
+                text("ALTER TABLE bookings ADD COLUMN transport_mode VARCHAR(30) DEFAULT ''")
+            )
+        if "available_time" not in columns:
+            conn.execute(
+                text("ALTER TABLE bookings ADD COLUMN available_time VARCHAR(60) DEFAULT ''")
+            )
+        if "pickup_address" not in columns:
+            conn.execute(
+                text("ALTER TABLE bookings ADD COLUMN pickup_address VARCHAR(255) DEFAULT ''")
+            )
 
 
 @app.get("/health")

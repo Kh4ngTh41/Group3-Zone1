@@ -38,6 +38,9 @@ class Booking(Base):
     ai_suggested: Mapped[bool] = mapped_column(Boolean, default=True)
     status: Mapped[str] = mapped_column(String(30), default="confirmed")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    transport_mode: Mapped[str] = mapped_column(String(30), default="")  # 'xanhsm' hoặc 'tự đi'
+    available_time: Mapped[str] = mapped_column(String(60), default="")  # giờ rảnh
+    pickup_address: Mapped[str] = mapped_column(String(255), default="")  # địa chỉ đón khách
 
 
 class CorrectionEvent(Base):

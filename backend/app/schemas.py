@@ -1,6 +1,19 @@
-from typing import List, Optional
 
+from typing import List, Optional
 from pydantic import BaseModel, Field
+
+class TransportChoiceRequest(BaseModel):
+    booking_id: int
+    transport_mode: str  # 'xanhsm' hoặc 'tự đi'
+    available_time: str  # giờ rảnh của user (text)
+    pickup_address: str = ""  # địa chỉ đón khách
+
+class TransportChoiceResponse(BaseModel):
+    booking_id: int
+    transport_mode: str
+    available_time: str
+    pickup_address: str = ""
+    status: str
 
 
 class TriageRequest(BaseModel):

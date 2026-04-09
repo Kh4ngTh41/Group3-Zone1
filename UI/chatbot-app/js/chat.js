@@ -498,12 +498,107 @@ window.ChatEngine = (function() {
         ? `<div style="margin-top:8px;">Mã lịch hẹn: <strong>${escapeHtml(booking.booking_code)}</strong></div>`
         : `<div style="margin-top:8px;">Booking code: <strong>${escapeHtml(booking.booking_code)}</strong></div>`;
       await botReply(confirmCard + bookingText, true, 600);
+
+      // Hiển thị form chọn phương tiện và hỏi giờ rảnh
+      await showTransportChoiceForm(booking.booking_id);
     } catch (error) {
       state = STATE.AWAITING_PATIENT_INFO;
       await botReply(error.message || 'Không thể xác nhận đặt lịch. Vui lòng thử lại.', false, 500);
     } finally {
       isSubmittingBooking = false;
     }
+  }
+
+  async function showTransportChoiceForm(bookingId) {
+    const lang = window.currentLang;
+    const title = lang === 'vi' ? 'Bạn muốn di chuyển bằng phương tiện nào?' : 'How would you like to travel?';
+    const option1 = lang === 'vi' ? '🚕 Đặt xe XanhSM' : '🚕 Book XanhSM car';
+    const option2 = lang === 'vi' ? '🦶 Tự di chuyển' : '🦶 Self-transport';
+    const timeLabel = lang === 'vi' ? 'Bạn rảnh lúc nào để đặt xe?' : 'What time are you available?';
+    const addressLabel = lang === 'vi' ? 'Địa chỉ đón khách (bắt buộc nếu đặt XanhSM)' : 'Pickup address (required for XanhSM)';
+    const submitLabel = lang === 'vi' ? 'Xác nhận phương tiện' : 'Confirm transport';
+
+    const html = `
+      <div class="chat-booking-form" data-transport-form="true">
+        <div class="chat-booking-form-title">${title}</div>
+        <div style="margin:10px 0;display:flex;gap:10px;">
+          <button class="chat-specialty-btn" type="button" data-transport-mode="xanhsm">${option1}</button>
+          <button class="chat-specialty-btn" type="button" data-transport-mode="tự đi">${option2}</button>
+        </div>
+        <div style="margin:10px 0;">
+          <label class="chat-booking-label">${timeLabel}</label>
+          <input class="chat-booking-input" type="text" data-available-time placeholder="08:00, 13:30, ..." maxlength="40" />
+        </div>
+        <div style="margin:10px 0;">
+          <label class="chat-booking-label">${addressLabel}</label>
+          <input class="chat-booking-input" type="text" data-pickup-address placeholder="Số nhà, đường, quận/huyện..." maxlength="200" />
+        </div>
+        <button class="chat-specialty-btn" type="button" data-transport-submit="true">${submitLabel}</button>
+      </div>
+    `;
+
+    await botReply(html, true, 120);
+
+    setTimeout(() => {
+      let selectedMode = '';
+      const modeButtons = document.querySelectorAll('[data-transport-mode]');
+      const submitBtn = document.querySelector('[data-transport-submit]');
+
+      modeButtons.forEach((btn) => {
+        btn.onclick = () => {
+          selectedMode = (btn.getAttribute('data-transport-mode') || '').trim();
+          modeButtons.forEach((b) => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        };
+      });
+
+      if (!submitBtn) return;
+
+      submitBtn.onclick = async () => {
+        const availableTime = (document.querySelector('[data-available-time]')?.value || '').trim();
+        const pickupAddress = (document.querySelector('[data-pickup-address]')?.value || '').trim();
+
+        if (!selectedMode) {
+          await botReply(lang === 'vi' ? 'Bạn cần chọn phương tiện di chuyển.' : 'Please select a transport mode.', false, 300);
+          return;
+        }
+        if (!availableTime) {
+          await botReply(lang === 'vi' ? 'Bạn cần nhập giờ rảnh.' : 'Please enter your available time.', false, 300);
+          return;
+        }
+        if (selectedMode === 'xanhsm' && !pickupAddress) {
+          await botReply(lang === 'vi' ? 'Bạn vui lòng nhập địa chỉ đón khách để đặt xe XanhSM.' : 'Please provide pickup address for XanhSM booking.', false, 300);
+          return;
+        }
+
+        submitBtn.disabled = true;
+        try {
+          await request('/api/transport/choose', {
+            method: 'POST',
+            body: JSON.stringify({
+              booking_id: bookingId,
+              transport_mode: selectedMode,
+              available_time: availableTime,
+              pickup_address: pickupAddress,
+            }),
+          });
+
+          const finalMsg = selectedMode === 'xanhsm'
+            ? (lang === 'vi'
+              ? '✅ Đặt lịch và đặt xe XanhSM thành công. Xe sẽ đón bạn tại địa chỉ đã cung cấp. Cảm ơn quý khách!'
+              : '✅ Appointment and XanhSM ride booked successfully. Your pickup is confirmed.')
+            : (lang === 'vi'
+              ? '✅ Đặt lịch thành công. Mời quý khách đến đúng giờ hẹn để được phục vụ tốt nhất.'
+              : '✅ Appointment booked successfully. Please arrive on time.');
+
+          await botReply(finalMsg, false, 400);
+        } catch (e) {
+          await botReply(e.message || (lang === 'vi' ? 'Không thể lưu lựa chọn phương tiện.' : 'Could not save transport choice.'), false, 400);
+        } finally {
+          submitBtn.disabled = false;
+        }
+      };
+    }, 60);
   }
 
   async function runFeaturedDoctorBooking(doctorName, specialtyName, profileEndpoint = '') {
