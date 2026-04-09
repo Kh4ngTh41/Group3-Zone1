@@ -771,10 +771,15 @@ textarea { font-family: inherit; resize: none; }
    FOOTER
    ============================================================ */
 .footer {
-  background: var(--text-primary);
+  background: #0d1b2e;
   color: white;
   padding-top: 64px;
 }
+
+[data-theme="dark"] .footer {
+  background: #060e1a;
+}
+
 
 .footer-inner {
   display: grid;
@@ -825,17 +830,28 @@ textarea { font-family: inherit; resize: none; }
    MOBILE BOTTOM NAV
    ============================================================ */
 .bottom-nav {
-  display: none;
+  display: none; /* mobile only – see @media */
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 200;
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 8px 0 max(env(safe-area-inset-bottom), 8px);
-  display: flex;
   align-items: center;
   justify-content: space-around;
 }
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+  /* Hide floating bubbles on mobile – use bottom nav instead */
+  .chat-bubble,
+  .support-fab {
+    display: none !important;
+  }
+}
+
 
 .bottom-nav-item {
   display: flex;
@@ -932,6 +948,70 @@ textarea { font-family: inherit; resize: none; }
 }
 
 .chat-bubble.open { transform: scale(0.9) rotate(15deg); }
+
+/* ============================================================
+   SUPPORT FAB – Hotline button (desktop only)
+   ============================================================ */
+.support-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 108px; /* Left of chatBubble (64px + 16px gap) */
+  z-index: 299;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5a623, #d4880a);
+  box-shadow: 0 6px 24px rgba(245,166,35,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+  transition: all var(--transition);
+  animation: bubbleIntro 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.8s;
+}
+.support-fab:hover {
+  transform: scale(1.12);
+  box-shadow: 0 10px 32px rgba(245,166,35,0.6);
+}
+.support-fab:active { transform: scale(0.94); }
+
+/* Tooltip on hover */
+.support-fab::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  background: #0d1b2e;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.support-fab::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  right: 18px;
+  border: 5px solid transparent;
+  border-top-color: #0d1b2e;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+.support-fab:hover::before,
+.support-fab:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
 
 /* ============================================================
    CHAT OVERLAY
@@ -1756,11 +1836,13 @@ textarea { font-family: inherit; resize: none; }
 }
 
 /* ============================================================
-   CHAT PANEL – enhanced open animation
+   CHAT PANEL – enhanced open animation (GSAP handles open, CSS handles close)
    ============================================================ */
+/* NOTE: No !important here – GSAP clearProps needs to fully reset inline styles */
 .chat-panel {
-  transition: transform 0.4s cubic-bezier(0.34, 1.15, 0.64, 1), opacity 0.28s ease !important;
+  transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.25s ease;
 }
+
 
 /* Quick chips stagger animation */
 .quick-chip {

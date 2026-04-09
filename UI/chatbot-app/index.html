@@ -273,7 +273,7 @@
       <span id="bnDoctorsLabel">Bác sĩ</span>
     </a>
     <button class="bottom-nav-fab" id="bnChat" aria-label="Chat với AI">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     </button>
     <a href="#specialties" class="bottom-nav-item" id="bnSpecialties">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -285,7 +285,17 @@
     </a>
   </nav>
 
-  <!-- FLOATING CHAT BUBBLE -->
+  <!-- SUPPORT HOTLINE FAB (Desktop only – hidden on mobile) -->
+  <a class="support-fab" id="supportFab"
+     href="tel:19002345"
+     data-tooltip="Hotline: 1900 2345"
+     aria-label="Hotline chăm sóc khách hàng 1900 2345">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round">
+      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15z"/>
+    </svg>
+  </a>
+
+  <!-- FLOATING CHAT BUBBLE (Desktop AI Chat) -->
   <button class="chat-bubble" id="chatBubble" aria-label="Mở chat AI">
     <div class="chat-bubble-icon">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
