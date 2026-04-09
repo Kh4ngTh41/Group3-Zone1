@@ -128,52 +128,52 @@ window.SPECIALTIES = [
 
 window.DOCTORS = {
   neurology: [
-    { id: 'd1', name: 'GS.TS Nguyễn Văn Linh', nameEn: 'Prof. Nguyen Van Linh', title: 'GS.TS', specialty: 'neurology', emoji: '👨‍⚕️', experience: '25 năm', rating: '4.9', reviews: 342 },
-    { id: 'd2', name: 'PGS.TS Trần Thị Mai', nameEn: 'Assoc.Prof. Tran Thi Mai', title: 'PGS.TS', specialty: 'neurology', emoji: '👩‍⚕️', experience: '18 năm', rating: '4.8', reviews: 289 },
-    { id: 'd3', name: 'TS.BSCK2 Lê Minh Đức', nameEn: 'Dr. Le Minh Duc', title: 'TS.BSCK2', specialty: 'neurology', emoji: '👨‍⚕️', experience: '14 năm', rating: '4.7', reviews: 198 },
+    { id: 'd1', name: 'GS.TS Nguyễn Văn Linh', nameEn: 'Prof. Nguyen Van Linh', title: 'GS.TS', specialty: 'neurology', emoji: '👨‍⚕️', experience: '25 năm', rating: '4.9', reviews: 342, doctor_profile_endpoint: '/bac-si/d1', doctorProfileEndpoint: '/bac-si/d1' },
+    { id: 'd2', name: 'PGS.TS Trần Thị Mai', nameEn: 'Assoc.Prof. Tran Thi Mai', title: 'PGS.TS', specialty: 'neurology', emoji: '👩‍⚕️', experience: '18 năm', rating: '4.8', reviews: 289, doctor_profile_endpoint: '/bac-si/d2', doctorProfileEndpoint: '/bac-si/d2' },
+    { id: 'd3', name: 'TS.BSCK2 Lê Minh Đức', nameEn: 'Dr. Le Minh Duc', title: 'TS.BSCK2', specialty: 'neurology', emoji: '👨‍⚕️', experience: '14 năm', rating: '4.7', reviews: 198, doctor_profile_endpoint: '/bac-si/d3', doctorProfileEndpoint: '/bac-si/d3' },
   ],
   cardiology: [
-    { id: 'd4', name: 'GS.TS Phạm Thế Anh', nameEn: 'Prof. Pham The Anh', title: 'GS.TS', specialty: 'cardiology', emoji: '👨‍⚕️', experience: '30 năm', rating: '5.0', reviews: 521 },
-    { id: 'd5', name: 'PGS.TS Hoàng Thị Lan', nameEn: 'Assoc.Prof. Hoang Thi Lan', title: 'PGS.TS', specialty: 'cardiology', emoji: '👩‍⚕️', experience: '22 năm', rating: '4.9', reviews: 388 },
-    { id: 'd6', name: 'TS.BSCK2 Vũ Thanh Hùng', nameEn: 'Dr. Vu Thanh Hung', title: 'TS.BSCK2', specialty: 'cardiology', emoji: '👨‍⚕️', experience: '16 năm', rating: '4.8', reviews: 244 },
+    { id: 'd4', name: 'GS.TS Phạm Thế Anh', nameEn: 'Prof. Pham The Anh', title: 'GS.TS', specialty: 'cardiology', emoji: '👨‍⚕️', experience: '30 năm', rating: '5.0', reviews: 521, doctor_profile_endpoint: '/bac-si/d4', doctorProfileEndpoint: '/bac-si/d4' },
+    { id: 'd5', name: 'PGS.TS Hoàng Thị Lan', nameEn: 'Assoc.Prof. Hoang Thi Lan', title: 'PGS.TS', specialty: 'cardiology', emoji: '👩‍⚕️', experience: '22 năm', rating: '4.9', reviews: 388, doctor_profile_endpoint: '/bac-si/d5', doctorProfileEndpoint: '/bac-si/d5' },
+    { id: 'd6', name: 'TS.BSCK2 Vũ Thanh Hùng', nameEn: 'Dr. Vu Thanh Hung', title: 'TS.BSCK2', specialty: 'cardiology', emoji: '👨‍⚕️', experience: '16 năm', rating: '4.8', reviews: 244, doctor_profile_endpoint: '/bac-si/d6', doctorProfileEndpoint: '/bac-si/d6' },
   ],
   gastro: [
-    { id: 'd7', name: 'PGS.TS Đỗ Thành Nam', nameEn: 'Assoc.Prof. Do Thanh Nam', title: 'PGS.TS', specialty: 'gastro', emoji: '👨‍⚕️', experience: '20 năm', rating: '4.8', reviews: 267 },
-    { id: 'd8', name: 'TS.BSCK2 Nguyễn Thị Hoa', nameEn: 'Dr. Nguyen Thi Hoa', title: 'TS.BSCK2', specialty: 'gastro', emoji: '👩‍⚕️', experience: '15 năm', rating: '4.7', reviews: 182 },
+    { id: 'd7', name: 'PGS.TS Đỗ Thành Nam', nameEn: 'Assoc.Prof. Do Thanh Nam', title: 'PGS.TS', specialty: 'gastro', emoji: '👨‍⚕️', experience: '20 năm', rating: '4.8', reviews: 267, doctor_profile_endpoint: '/bac-si/d7', doctorProfileEndpoint: '/bac-si/d7' },
+    { id: 'd8', name: 'TS.BSCK2 Nguyễn Thị Hoa', nameEn: 'Dr. Nguyen Thi Hoa', title: 'TS.BSCK2', specialty: 'gastro', emoji: '👩‍⚕️', experience: '15 năm', rating: '4.7', reviews: 182, doctor_profile_endpoint: '/bac-si/d8', doctorProfileEndpoint: '/bac-si/d8' },
   ],
   orthopedics: [
-    { id: 'd9', name: 'GS.TS Trần Đình Chiến', nameEn: 'Prof. Tran Dinh Chien', title: 'GS.TS', specialty: 'orthopedics', emoji: '👨‍⚕️', experience: '28 năm', rating: '4.9', reviews: 445 },
-    { id: 'd10', name: 'PGS.TS Lê Thị Phương', nameEn: 'Assoc.Prof. Le Thi Phuong', title: 'PGS.TS', specialty: 'orthopedics', emoji: '👩‍⚕️', experience: '19 năm', rating: '4.8', reviews: 301 },
+    { id: 'd9', name: 'GS.TS Trần Đình Chiến', nameEn: 'Prof. Tran Dinh Chien', title: 'GS.TS', specialty: 'orthopedics', emoji: '👨‍⚕️', experience: '28 năm', rating: '4.9', reviews: 445, doctor_profile_endpoint: '/bac-si/d9', doctorProfileEndpoint: '/bac-si/d9' },
+    { id: 'd10', name: 'PGS.TS Lê Thị Phương', nameEn: 'Assoc.Prof. Le Thi Phuong', title: 'PGS.TS', specialty: 'orthopedics', emoji: '👩‍⚕️', experience: '19 năm', rating: '4.8', reviews: 301, doctor_profile_endpoint: '/bac-si/d10', doctorProfileEndpoint: '/bac-si/d10' },
   ],
   dermatology: [
-    { id: 'd11', name: 'TS.BSCK2 Nguyễn Hữu Quang', nameEn: 'Dr. Nguyen Huu Quang', title: 'TS.BSCK2', specialty: 'dermatology', emoji: '👨‍⚕️', experience: '16 năm', rating: '4.8', reviews: 213 },
-    { id: 'd12', name: 'Th.S BSCK1 Phạm Thị Thu', nameEn: 'Dr. Pham Thi Thu', title: 'THAC', specialty: 'dermatology', emoji: '👩‍⚕️', experience: '11 năm', rating: '4.7', reviews: 156 },
+    { id: 'd11', name: 'TS.BSCK2 Nguyễn Hữu Quang', nameEn: 'Dr. Nguyen Huu Quang', title: 'TS.BSCK2', specialty: 'dermatology', emoji: '👨‍⚕️', experience: '16 năm', rating: '4.8', reviews: 213, doctor_profile_endpoint: '/bac-si/d11', doctorProfileEndpoint: '/bac-si/d11' },
+    { id: 'd12', name: 'Th.S BSCK1 Phạm Thị Thu', nameEn: 'Dr. Pham Thi Thu', title: 'THAC', specialty: 'dermatology', emoji: '👩‍⚕️', experience: '11 năm', rating: '4.7', reviews: 156, doctor_profile_endpoint: '/bac-si/d12', doctorProfileEndpoint: '/bac-si/d12' },
   ],
   ent: [
-    { id: 'd13', name: 'PGS.TS Đinh Văn Thành', nameEn: 'Assoc.Prof. Dinh Van Thanh', title: 'PGS.TS', specialty: 'ent', emoji: '👨‍⚕️', experience: '21 năm', rating: '4.8', reviews: 278 },
-    { id: 'd14', name: 'TS.BSCK2 Bùi Thị Nga', nameEn: 'Dr. Bui Thi Nga', title: 'TS.BSCK2', specialty: 'ent', emoji: '👩‍⚕️', experience: '13 năm', rating: '4.7', reviews: 167 },
+    { id: 'd13', name: 'PGS.TS Đinh Văn Thành', nameEn: 'Assoc.Prof. Dinh Van Thanh', title: 'PGS.TS', specialty: 'ent', emoji: '👨‍⚕️', experience: '21 năm', rating: '4.8', reviews: 278, doctor_profile_endpoint: '/bac-si/d13', doctorProfileEndpoint: '/bac-si/d13' },
+    { id: 'd14', name: 'TS.BSCK2 Bùi Thị Nga', nameEn: 'Dr. Bui Thi Nga', title: 'TS.BSCK2', specialty: 'ent', emoji: '👩‍⚕️', experience: '13 năm', rating: '4.7', reviews: 167, doctor_profile_endpoint: '/bac-si/d14', doctorProfileEndpoint: '/bac-si/d14' },
   ],
   ophthalmology: [
-    { id: 'd15', name: 'GS.TS Phan Đức Long', nameEn: 'Prof. Phan Duc Long', title: 'GS.TS', specialty: 'ophthalmology', emoji: '👨‍⚕️', experience: '26 năm', rating: '4.9', reviews: 398 },
-    { id: 'd16', name: 'PGS.TS Vũ Thị Bích', nameEn: 'Assoc.Prof. Vu Thi Bich', title: 'PGS.TS', specialty: 'ophthalmology', emoji: '👩‍⚕️', experience: '17 năm', rating: '4.8', reviews: 231 },
+    { id: 'd15', name: 'GS.TS Phan Đức Long', nameEn: 'Prof. Phan Duc Long', title: 'GS.TS', specialty: 'ophthalmology', emoji: '👨‍⚕️', experience: '26 năm', rating: '4.9', reviews: 398, doctor_profile_endpoint: '/bac-si/d15', doctorProfileEndpoint: '/bac-si/d15' },
+    { id: 'd16', name: 'PGS.TS Vũ Thị Bích', nameEn: 'Assoc.Prof. Vu Thi Bich', title: 'PGS.TS', specialty: 'ophthalmology', emoji: '👩‍⚕️', experience: '17 năm', rating: '4.8', reviews: 231, doctor_profile_endpoint: '/bac-si/d16', doctorProfileEndpoint: '/bac-si/d16' },
   ],
   respiratory: [
-    { id: 'd17', name: 'PGS.TS Nguyễn Thanh Bình', nameEn: 'Assoc.Prof. Nguyen Thanh Binh', title: 'PGS.TS', specialty: 'respiratory', emoji: '👨‍⚕️', experience: '22 năm', rating: '4.9', reviews: 312 },
-    { id: 'd18', name: 'TS.BSCK2 Trần Thị Hiên', nameEn: 'Dr. Tran Thi Hien', title: 'TS.BSCK2', specialty: 'respiratory', emoji: '👩‍⚕️', experience: '14 năm', rating: '4.7', reviews: 189 },
+    { id: 'd17', name: 'PGS.TS Nguyễn Thanh Bình', nameEn: 'Assoc.Prof. Nguyen Thanh Binh', title: 'PGS.TS', specialty: 'respiratory', emoji: '👨‍⚕️', experience: '22 năm', rating: '4.9', reviews: 312, doctor_profile_endpoint: '/bac-si/d17', doctorProfileEndpoint: '/bac-si/d17' },
+    { id: 'd18', name: 'TS.BSCK2 Trần Thị Hiên', nameEn: 'Dr. Tran Thi Hien', title: 'TS.BSCK2', specialty: 'respiratory', emoji: '👩‍⚕️', experience: '14 năm', rating: '4.7', reviews: 189, doctor_profile_endpoint: '/bac-si/d18', doctorProfileEndpoint: '/bac-si/d18' },
   ],
   endocrinology: [
-    { id: 'd19', name: 'GS.TS Lê Văn Hùng', nameEn: 'Prof. Le Van Hung', title: 'GS.TS', specialty: 'endocrinology', emoji: '👨‍⚕️', experience: '24 năm', rating: '4.9', reviews: 356 },
-    { id: 'd20', name: 'PGS.TS Nguyễn Thị Cúc', nameEn: 'Assoc.Prof. Nguyen Thi Cuc', title: 'PGS.TS', specialty: 'endocrinology', emoji: '👩‍⚕️', experience: '18 năm', rating: '4.8', reviews: 234 },
+    { id: 'd19', name: 'GS.TS Lê Văn Hùng', nameEn: 'Prof. Le Van Hung', title: 'GS.TS', specialty: 'endocrinology', emoji: '👨‍⚕️', experience: '24 năm', rating: '4.9', reviews: 356, doctor_profile_endpoint: '/bac-si/d19', doctorProfileEndpoint: '/bac-si/d19' },
+    { id: 'd20', name: 'PGS.TS Nguyễn Thị Cúc', nameEn: 'Assoc.Prof. Nguyen Thi Cuc', title: 'PGS.TS', specialty: 'endocrinology', emoji: '👩‍⚕️', experience: '18 năm', rating: '4.8', reviews: 234, doctor_profile_endpoint: '/bac-si/d20', doctorProfileEndpoint: '/bac-si/d20' },
   ],
   pediatrics: [
-    { id: 'd21', name: 'GS.TS Phạm Nhật An', nameEn: 'Prof. Pham Nhat An', title: 'GS.TS', specialty: 'pediatrics', emoji: '👨‍⚕️', experience: '29 năm', rating: '5.0', reviews: 612 },
-    { id: 'd22', name: 'PGS.TS Nguyễn Thu Hương', nameEn: 'Assoc.Prof. Nguyen Thu Huong', title: 'PGS.TS', specialty: 'pediatrics', emoji: '👩‍⚕️', experience: '20 năm', rating: '4.9', reviews: 441 },
+    { id: 'd21', name: 'GS.TS Phạm Nhật An', nameEn: 'Prof. Pham Nhat An', title: 'GS.TS', specialty: 'pediatrics', emoji: '👨‍⚕️', experience: '29 năm', rating: '5.0', reviews: 612, doctor_profile_endpoint: '/bac-si/d21', doctorProfileEndpoint: '/bac-si/d21' },
+    { id: 'd22', name: 'PGS.TS Nguyễn Thu Hương', nameEn: 'Assoc.Prof. Nguyen Thu Huong', title: 'PGS.TS', specialty: 'pediatrics', emoji: '👩‍⚕️', experience: '20 năm', rating: '4.9', reviews: 441, doctor_profile_endpoint: '/bac-si/d22', doctorProfileEndpoint: '/bac-si/d22' },
   ],
   oncology: [
-    { id: 'd23', name: 'GS.TS Trần Văn Sáng', nameEn: 'Prof. Tran Van Sang', title: 'GS.TS', specialty: 'oncology', emoji: '👨‍⚕️', experience: '27 năm', rating: '4.9', reviews: 289 },
+    { id: 'd23', name: 'GS.TS Trần Văn Sáng', nameEn: 'Prof. Tran Van Sang', title: 'GS.TS', specialty: 'oncology', emoji: '👨‍⚕️', experience: '27 năm', rating: '4.9', reviews: 289, doctor_profile_endpoint: '/bac-si/d23', doctorProfileEndpoint: '/bac-si/d23' },
   ],
   urology: [
-    { id: 'd24', name: 'PGS.TS Nguyễn Đức Minh', nameEn: 'Assoc.Prof. Nguyen Duc Minh', title: 'PGS.TS', specialty: 'urology', emoji: '👨‍⚕️', experience: '19 năm', rating: '4.8', reviews: 201 },
+    { id: 'd24', name: 'PGS.TS Nguyễn Đức Minh', nameEn: 'Assoc.Prof. Nguyen Duc Minh', title: 'PGS.TS', specialty: 'urology', emoji: '👨‍⚕️', experience: '19 năm', rating: '4.8', reviews: 201, doctor_profile_endpoint: '/bac-si/d24', doctorProfileEndpoint: '/bac-si/d24' },
   ],
 };
 

@@ -120,6 +120,51 @@ def triage(payload: TriageRequest, db: Session = Depends(get_db)):
     low_confidence = triage_result.confidence < settings.low_confidence_threshold
     status = "low_confidence" if low_confidence else "success"
 
+    # If triage is low-confidence or ambiguous, ask the user for very specific clarifying details
+    # before presenting specialty choices or slots. We intentionally DO NOT return suggested
+    # specialties or slots here so the UI will prompt the user to provide more information.
+    if low_confidence:
+        clarifying_questions = (
+            "Mình vẫn cần thêm một vài thông tin cụ thể để chọn chuyên khoa chính xác. "
+            "Bạn vui lòng trả lời các câu hỏi sau (chỉ cần trả lời ngắn gọn):\n"
+            "1) Triệu chứng chính là gì (ví dụ: đau, sốt, ho, khó thở, nôn, tiêu chảy)?\n"
+            "2) Triệu chứng bắt đầu khi nào (vài giờ / vài ngày / lâu năm)?\n"
+            "3) Vị trí cụ thể của triệu chứng (ngực, bụng, đầu, tay/chân, toàn thân)?\n"
+            "4) Mức độ: nhẹ / vừa / nặng hoặc trên thang 1-10?\n"
+            "5) Có kèm theo: sốt, khó thở, chảy máu, nôn ói, tiêu chảy, bất tỉnh, co giật không?\n"
+            "6) Gần đây có chấn thương, phẫu thuật hoặc bệnh nền (tim, đái tháo đường, thai kỳ)?\n"
+            "7) Bạn muốn khám cho ai (người lớn / trẻ em) và độ tuổi (nếu biết)?\n\n"
+            "Trả lời những câu này giúp mình chọn đúng chuyên khoa (ví dụ: Nội tổng quát, Tim mạch, Tiêu hóa, Thần kinh…)."
+        )
+
+        msg = safe_bot_message(clarifying_questions)
+
+        # Log the clarifying prompt and metric, but don't expose any slots or suggestions yet.
+        db.add(models.Message(conversation_id=conversation.id, role="assistant", content=msg))
+        db.commit()
+
+        record_metric(
+            db,
+            "triage_request",
+            1.0,
+            {
+                "status": "clarify",
+                "specialty": None,
+                "fallback": triage_result.fallback_used,
+            },
+        )
+
+        return TriageResponse(
+            conversation_id=conversation.id,
+            status="clarify",
+            message=msg,
+            confidence=triage_result.confidence,
+            suggested_specialty=None,
+            candidates=[],
+            slots=[],
+            fallback_used=triage_result.fallback_used,
+        )
+
     msg = safe_bot_message(
         "Mình đã gợi ý chuyên khoa phù hợp và tìm thấy lịch trống. Bạn chọn khung giờ để xác nhận đặt lịch nhé."
     )
