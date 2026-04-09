@@ -677,6 +677,21 @@ textarea { font-family: inherit; resize: none; }
   margin-bottom: 16px;
 }
 
+.doctor-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--vin-teal-dark);
+  margin-bottom: 12px;
+}
+
+.doctor-profile-link:hover {
+  color: var(--vin-teal);
+  text-decoration: underline;
+}
+
 .doctor-book-btn {
   width: 100%;
   padding: 10px;
@@ -1061,6 +1076,17 @@ textarea { font-family: inherit; resize: none; }
   pointer-events: all;
 }
 
+.chat-panel.fullscreen {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  transform-origin: center center;
+}
+
 /* Chat Header */
 .chat-header {
   background: linear-gradient(135deg, #006d7a, #00a99d);
@@ -1133,6 +1159,10 @@ textarea { font-family: inherit; resize: none; }
   transition: all var(--transition);
 }
 .chat-action-btn:hover { background: rgba(255,255,255,0.22); }
+.chat-action-btn.active {
+  background: rgba(255,255,255,0.3);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset;
+}
 
 /* Chat Messages */
 .chat-messages {
@@ -1290,6 +1320,41 @@ textarea { font-family: inherit; resize: none; }
 }
 .chat-specialty-btn:hover { background: var(--vin-teal-dark); }
 
+.chat-hotline-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-hotline-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 9px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #e53935, #b71c1c);
+  box-shadow: 0 6px 16px rgba(229, 57, 53, 0.3);
+  transition: all var(--transition);
+}
+
+.chat-hotline-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(229, 57, 53, 0.4);
+}
+
+.chat-hotline-btn--vinmec {
+  background: linear-gradient(135deg, #f5a623, #d4880a);
+  box-shadow: 0 6px 16px rgba(245, 166, 35, 0.35);
+}
+
+.chat-hotline-btn--vinmec:hover {
+  box-shadow: 0 8px 20px rgba(245, 166, 35, 0.45);
+}
+
 /* Doctor Card in Chat */
 .chat-doctor-card {
   background: var(--surface);
@@ -1368,6 +1433,58 @@ textarea { font-family: inherit; resize: none; }
 .chat-confirm-icon { font-size: 2.2rem; margin-bottom: 8px; }
 .chat-confirm-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
 .chat-confirm-detail { font-size: 0.82rem; opacity: 0.88; line-height: 1.65; }
+
+.chat-booking-form {
+  background: linear-gradient(135deg, var(--vin-teal-light), #ffffff);
+  border: 1.5px solid var(--vin-teal);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-top: 8px;
+}
+
+[data-theme="dark"] .chat-booking-form {
+  background: linear-gradient(135deg, #1a3332, #132625);
+}
+
+.chat-booking-form-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--vin-teal-dark);
+}
+
+.chat-booking-form-detail {
+  margin-top: 6px;
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.chat-booking-label {
+  display: block;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.chat-booking-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 10px;
+  font-size: 0.84rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.chat-booking-input:focus {
+  outline: none;
+  border-color: var(--vin-teal);
+  box-shadow: 0 0 0 2px rgba(0, 169, 157, 0.18);
+}
 
 /* Quick Replies */
 .quick-replies {

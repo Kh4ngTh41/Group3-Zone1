@@ -7,6 +7,7 @@
 
   // ---- DOM Refs ----
   const $ = id => document.getElementById(id);
+  const API_BASE = window.VINCARE_API_BASE || 'http://localhost:8000';
 
   const header       = $('header') || document.querySelector('.header');
   const langToggle   = $('langToggle');
@@ -17,6 +18,7 @@
   const chatOverlay  = $('chatOverlay');
   const chatClose    = $('chatClose');
   const chatMinimize = $('chatMinimize');
+  const chatFullscreen = $('chatFullscreen');
   const chatLangToggle = $('chatLangToggle');
   const chatLangFlag   = $('chatLangFlag');
   const chatMessages = $('chatMessages');
@@ -33,7 +35,78 @@
 
   // ---- State ----
   let chatOpen = false;
+  let chatFullscreenOpen = false;
   let msgCount = 0;
+  let isSendingMessage = false;
+
+  function getSpecialtyDisplayName(spec) {
+    if (!spec) return '';
+    return spec.name || window.t(spec.nameKey || '');
+  }
+
+  function getSpecialtyById(specId) {
+    return (window.SPECIALTIES || []).find(s => s.id === specId);
+  }
+
+  function normalizeDoctorProfileUrl(endpoint) {
+    const base = 'https://www.vinmec.com';
+    const path = (endpoint || '').trim();
+    if (!path) return base;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+
+  function updateFullscreenButtonState() {
+    if (!chatFullscreen) return;
+    chatFullscreen.classList.toggle('active', chatFullscreenOpen);
+    chatFullscreen.setAttribute('aria-label', chatFullscreenOpen ? 'Thu nhỏ khung chat' : 'Mở rộng khung chat');
+  }
+
+  function toggleFullscreen() {
+    chatFullscreenOpen = !chatFullscreenOpen;
+    if (chatPanel) {
+      chatPanel.classList.toggle('fullscreen', chatFullscreenOpen);
+    }
+    updateFullscreenButtonState();
+  }
+
+  async function loadHomepageHighlights() {
+    try {
+      const response = await fetch(`${API_BASE}/api/home/highlights`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+
+      if (Array.isArray(data.specialties) && data.specialties.length > 0) {
+        window.SPECIALTIES = data.specialties.map((spec) => ({
+          id: spec.id,
+          emoji: spec.emoji || '🏥',
+          name: spec.name,
+          doctors: spec.doctors || 0,
+          keywords: { vi: [], en: [] },
+        }));
+      }
+
+      if (Array.isArray(data.featured_doctors) && data.featured_doctors.length > 0) {
+        window.FEATURED_DOCTORS = data.featured_doctors.map((doctor, index) => ({
+          id: doctor.id || `csv-doc-${index + 1}`,
+          name: doctor.name,
+          nameEn: doctor.name,
+          title: doctor.title || 'Bác sĩ',
+          specialty: doctor.specialty_id,
+          specialtyName: doctor.specialty,
+          emoji: '👨‍⚕️',
+          experience: '',
+          rating: '4.9',
+          specialties: Array.isArray(doctor.specialties) ? doctor.specialties : [doctor.specialty].filter(Boolean),
+          doctorProfileEndpoint: doctor.doctor_profile_endpoint || '',
+        }));
+      }
+    } catch (error) {
+      console.warn('Unable to load homepage highlights from API. Using fallback static data.', error);
+    }
+  }
 
   // ============================================================
   // LANGUAGE
@@ -132,7 +205,7 @@
     if (!specialtiesGrid) return;
     const lang = window.currentLang;
     specialtiesGrid.innerHTML = window.SPECIALTIES.map(spec => {
-      const name = window.t(spec.nameKey);
+      const name = getSpecialtyDisplayName(spec);
       const countLabel = lang === 'vi' ? `${spec.doctors} bác sĩ` : `${spec.doctors} doctors`;
       return `
         <div class="specialty-card fade-in-up" data-spec-id="${spec.id}" role="button" tabindex="0" aria-label="${name}">
@@ -148,13 +221,14 @@
         openChat();
         const specId = card.dataset.specId;
         setTimeout(() => {
-          const spec = window.SPECIALTIES.find(s => s.id === specId);
+          const spec = getSpecialtyById(specId);
           if (spec) {
+            const specName = getSpecialtyDisplayName(spec);
             const userMsg = window.currentLang === 'vi'
-              ? `Tôi muốn khám ${window.t(spec.nameKey)}`
-              : `I want to see a ${window.t(spec.nameKey)} doctor`;
+              ? `Tôi muốn khám ${specName}`
+              : `I want to see a ${specName} doctor`;
             appendUserMessage(userMsg);
-            window.ChatEngine.handleSpecialtySelect(specId);
+            window.ChatEngine.handleMessage(userMsg);
           }
         }, 400);
       });
@@ -169,8 +243,13 @@
     const lang = window.currentLang;
     doctorsGrid.innerHTML = window.FEATURED_DOCTORS.map(doc => {
       const name = lang === 'en' ? doc.nameEn : doc.name;
-      const specName = window.t(window.SPECIALTIES.find(s => s.id === doc.specialty)?.nameKey || '');
-      const expLabel = lang === 'vi' ? `${doc.experience} KN` : `${doc.experience}`;
+      const spec = getSpecialtyById(doc.specialty);
+      const specName = doc.specialtyName || getSpecialtyDisplayName(spec);
+      const profileLabel = lang === 'vi' ? 'Xem hồ sơ bác sĩ' : 'Doctor profile';
+      const profileUrl = normalizeDoctorProfileUrl(doc.doctorProfileEndpoint);
+      const expLabel = doc.experience
+        ? (lang === 'vi' ? `${doc.experience} KN` : `${doc.experience}`)
+        : (lang === 'vi' ? 'Nhiều năm kinh nghiệm' : 'Experienced');
       const bookLabel = window.t('doctorBookBtn');
       return `
         <div class="doctor-card fade-in-up">
@@ -182,6 +261,7 @@
             <div class="doctor-name">${name}</div>
             <div class="doctor-title">${doc.title}</div>
             <div class="doctor-specialty">🏥 ${specName} · ${expLabel}</div>
+            <a class="doctor-profile-link" href="${profileUrl}" target="_blank" rel="noopener noreferrer">${profileLabel}</a>
             <button class="doctor-book-btn" data-doc-id="${doc.id}" data-spec-id="${doc.specialty}">${bookLabel}</button>
           </div>
         </div>`;
@@ -190,15 +270,22 @@
     doctorsGrid.querySelectorAll('.doctor-book-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         openChat();
-        const docId = btn.dataset.docId;
-        const specId = btn.dataset.specId;
+        const selectedDoctor = (window.FEATURED_DOCTORS || []).find((doc) => doc.id === btn.dataset.docId);
         setTimeout(() => {
-          const spec = window.SPECIALTIES.find(s => s.id === specId);
-          const doc = window.FEATURED_DOCTORS.find(d => d.id === docId);
-          if (spec) window.ChatEngine.handleSpecialtySelect(specId);
-          setTimeout(() => {
-            if (doc) window.ChatEngine.handleDoctorSelect(docId);
-          }, 1200);
+          if (!selectedDoctor) return;
+          const spec = getSpecialtyById(selectedDoctor.specialty);
+          const specName = selectedDoctor.specialtyName || getSpecialtyDisplayName(spec);
+          const userMsg = window.currentLang === 'vi'
+            ? `Tôi muốn đặt lịch với bác sĩ ${selectedDoctor.name}`
+            : `I want to book with Dr. ${selectedDoctor.name}`;
+          appendUserMessage(userMsg);
+          hideQuickReplies();
+          window.ChatEngine.handleFeaturedDoctorBooking({
+            name: selectedDoctor.name,
+            specialtyName: specName,
+            specialties: selectedDoctor.specialties || [],
+            doctorProfileEndpoint: selectedDoctor.doctorProfileEndpoint || '',
+          });
         }, 400);
       });
     });
@@ -253,9 +340,12 @@
   function closeChat() {
     chatOpen = false;
     chatPanel.classList.remove('open');
+    chatFullscreenOpen = false;
+    chatPanel.classList.remove('fullscreen');
     chatOverlay.classList.remove('visible');
     if (chatBubble) chatBubble.classList.remove('open');
     document.body.style.overflow = '';
+    updateFullscreenButtonState();
   }
 
   // ============================================================
@@ -329,20 +419,33 @@
   // CARD INTERACTION LISTENERS
   // ============================================================
   function attachCardListeners(container) {
-    // Specialty cards
-    container.querySelectorAll('[data-spec-id]').forEach(el => {
+    // Specialty options
+    container.querySelectorAll('[data-specialty-name]').forEach(el => {
       el.addEventListener('click', () => {
-        const specId = el.dataset.specId;
+        const specialtyName = el.dataset.specialtyName;
+        if (!specialtyName) return;
         hideQuickReplies();
-        window.ChatEngine.handleSpecialtySelect(specId);
+        window.ChatEngine.handleSpecialtySelect(specialtyName);
+      });
+    });
+
+    // Featured doctor multi-specialty options
+    container.querySelectorAll('[data-featured-specialty-name]').forEach(el => {
+      el.addEventListener('click', () => {
+        const specialtyName = el.dataset.featuredSpecialtyName;
+        if (!specialtyName) return;
+        hideQuickReplies();
+        window.ChatEngine.handleFeaturedDoctorSpecialtySelect(specialtyName);
       });
     });
 
     // Doctor cards
-    container.querySelectorAll('[data-doc-id]').forEach(el => {
-      el.addEventListener('click', () => {
-        const docId = el.dataset.docId;
-        window.ChatEngine.handleDoctorSelect(docId);
+    container.querySelectorAll('.chat-doctor-card[data-doctor-key]').forEach(el => {
+      el.addEventListener('click', (event) => {
+        if (event.target.closest('a')) return;
+        const doctorKey = el.dataset.doctorKey;
+        if (!doctorKey) return;
+        window.ChatEngine.handleDoctorSelect(doctorKey);
       });
     });
 
@@ -362,21 +465,53 @@
         window.ChatEngine.handleSlotSelect(slotId, label);
       });
     });
+
+    // Generic action buttons (e.g., book again)
+    container.querySelectorAll('[data-action]').forEach(el => {
+      el.addEventListener('click', () => {
+        const action = el.dataset.action;
+        if (!action) return;
+        window.ChatEngine.handleAction(action);
+      });
+    });
+
+    // Booking form submit
+    container.querySelectorAll('[data-booking-submit]').forEach(el => {
+      el.addEventListener('click', () => {
+        const form = el.closest('[data-booking-form]');
+        if (!form) return;
+        const nameInput = form.querySelector('[data-patient-name]');
+        const phoneInput = form.querySelector('[data-patient-phone]');
+        window.ChatEngine.handlePatientInfoSubmit(
+          nameInput ? nameInput.value : '',
+          phoneInput ? phoneInput.value : '',
+        );
+      });
+    });
   }
 
   // ============================================================
   // SEND MESSAGE
   // ============================================================
-  function sendMessage() {
+  async function sendMessage() {
+    if (isSendingMessage) return;
     const text = chatInput.value.trim();
     if (!text) return;
     chatInput.value = '';
     chatInput.style.height = 'auto';
     sendBtn.disabled = true;
+    isSendingMessage = true;
     hideQuickReplies();
     appendUserMessage(text);
     window.SpeechModule.cancelSpeak();
-    window.ChatEngine.handleMessage(text);
+    try {
+      await window.ChatEngine.handleMessage(text);
+    } finally {
+      isSendingMessage = false;
+      if (chatInput && chatInput.value.trim()) {
+        sendBtn.disabled = false;
+      }
+    }
   }
 
   // ============================================================
@@ -461,7 +596,9 @@
   // ============================================================
   // INIT
   // ============================================================
-  function init() {
+  async function init() {
+    await loadHomepageHighlights();
+
     // Language
     applyLanguage();
 
@@ -479,6 +616,7 @@
     if (headerCta)    headerCta.addEventListener('click', openChat);
     if (chatClose)    chatClose.addEventListener('click', closeChat);
     if (chatMinimize) chatMinimize.addEventListener('click', closeChat);
+    if (chatFullscreen) chatFullscreen.addEventListener('click', toggleFullscreen);
     if (chatOverlay)  chatOverlay.addEventListener('click', closeChat);
 
     // ESC key
@@ -535,6 +673,8 @@
 
     // Animations after small delay
     setTimeout(setupAnimations, 100);
+
+    updateFullscreenButtonState();
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(a => {
