@@ -342,14 +342,32 @@ window.ChatEngine = (function() {
             return;
           }
 
+          if (result.status === 'clarify') {
+            state = STATE.AWAITING_SYMPTOM;
+            await botReply(renderMarkdown(result.message), true, 650);
+            return;
+          }
+
           suggestedSpecialty = result.suggested_specialty || '';
-          currentSpecialty = '';
+          if (!suggestedSpecialty) {
+            state = STATE.AWAITING_SYMPTOM;
+            await botReply(window.currentLang === 'vi'
+              ? 'Mình chưa thể xác định chuyên khoa phù hợp lúc này. Bạn mô tả thêm triệu chứng nhé.'
+              : 'I could not determine the right specialty yet. Please share more symptoms.', false, 500);
+            return;
+          }
+
+          currentSpecialty = suggestedSpecialty;
           currentDoctor = null;
           currentDoctors = [];
-          state = STATE.SHOWING_SPECIALTY;
+          pendingSlot = null;
+          pendingFeaturedDoctor = null;
 
-          const specialtyHtml = buildSpecialtyOptions(suggestedSpecialty, result.candidates || []);
-          await botReply(`${renderMarkdown(result.message)}<br><br>${specialtyHtml}`, true, 700);
+          const confidencePct = Math.round((result.confidence || 0) * 100);
+          const leadHtml = `${renderMarkdown(result.message)}<br><br>${window.currentLang === 'vi'
+            ? `Chuyên khoa được chọn: <strong>${escapeHtml(suggestedSpecialty)}</strong> · Độ tin cậy: <strong>${confidencePct}%</strong>`
+            : `Selected specialty: <strong>${escapeHtml(suggestedSpecialty)}</strong> · Confidence: <strong>${confidencePct}%</strong>`}`;
+          await showDoctorsForSpecialty(suggestedSpecialty, leadHtml);
         } catch (error) {
           state = STATE.AWAITING_SYMPTOM;
           await botReply(error.message || 'Không thể kết nối hệ thống, vui lòng thử lại.', false, 600);
@@ -359,22 +377,7 @@ window.ChatEngine = (function() {
     }
   }
 
-  async function handleSpecialtySelect(specialtyName) {
-    if (!specialtyName) return;
-    currentSpecialty = specialtyName;
-
-    if (conversationId && suggestedSpecialty && suggestedSpecialty !== specialtyName) {
-      request('/api/feedback/correction', {
-        method: 'POST',
-        body: JSON.stringify({
-          conversation_id: conversationId,
-          predicted_specialty: suggestedSpecialty,
-          corrected_specialty: specialtyName,
-          reason: 'User chọn lại trên UI prototype',
-        }),
-      }).catch(() => null);
-    }
-
+  async function showDoctorsForSpecialty(specialtyName, leadHtml = '') {
     try {
       const data = await request(`/api/slots?specialty=${encodeURIComponent(specialtyName)}`, {
         method: 'GET',
@@ -384,9 +387,10 @@ window.ChatEngine = (function() {
       if (!slots.length) {
         state = STATE.AWAITING_SYMPTOM;
         const noSlotText = window.currentLang === 'vi'
-          ? 'Hiện chưa có lịch trống cho chuyên khoa này. Bạn vui lòng thử chuyên khoa khác hoặc liên hệ tổng đài 1900 2345.'
-          : 'No available slots for this specialty at the moment. Please try another specialty or call 1900 2345.';
-        await botReply(noSlotText, false, 600);
+          ? 'Hiện chưa có lịch trống cho chuyên khoa đã chọn. Mình sẽ chuyển bạn sang tổng đài Vinmec 1900 2345 để hỗ trợ ngay.'
+          : 'No available slots for the selected specialty. I will connect you to Vinmec hotline 1900 2345 for support.';
+        const finalHtml = leadHtml ? `${leadHtml}<br><br>${escapeHtml(noSlotText)}` : noSlotText;
+        await botReply(finalHtml, Boolean(leadHtml), 600);
         return;
       }
 
@@ -396,13 +400,20 @@ window.ChatEngine = (function() {
       state = STATE.SHOWING_DOCTORS;
 
       const intro = window.currentLang === 'vi'
-        ? `Chuyên khoa <strong>${escapeHtml(specialtyName)}</strong> đang có các bác sĩ trống lịch:`
+        ? `Các bác sĩ hiện có lịch trống cho <strong>${escapeHtml(specialtyName)}</strong>:`
         : `Available doctors for <strong>${escapeHtml(specialtyName)}</strong>:`;
-      await botReply(`${intro}<br>${buildDoctorCards(currentDoctors)}`, true, 550);
+      const html = `${leadHtml ? `${leadHtml}<br><br>` : ''}${intro}<br>${buildDoctorCards(currentDoctors)}`;
+      await botReply(html, true, 550);
     } catch (error) {
       state = STATE.AWAITING_SYMPTOM;
       await botReply(error.message || 'Không thể tải danh sách bác sĩ.', false, 550);
     }
+  }
+
+  async function handleSpecialtySelect(specialtyName) {
+    if (!specialtyName) return;
+    currentSpecialty = specialtyName;
+    await showDoctorsForSpecialty(specialtyName);
   }
 
   async function handleDoctorSelect(doctorKey) {

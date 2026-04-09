@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     allow_origins: str = "http://localhost:3000"
     emergency_hotline: str = "115"
     vinmec_hotline: str = "1900 2345"
+    emergency_confidence_threshold: float = 0.85
     low_confidence_threshold: float = 0.65
 
     # Use absolute env path so settings do not depend on process working directory.
