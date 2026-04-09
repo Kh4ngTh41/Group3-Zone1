@@ -12,7 +12,7 @@ Prototype mô phỏng trợ lý AI đặt lịch khám cho Vinmec theo hội tho
 - GitHub repo: https://github.com/<your-org-or-user>/AI_in_Action-VinUni_Group3-Zone1
 - Backend local: http://127.0.0.1:8000
 - UI local demo: http://127.0.0.1:5500
-- Video demo:
+- Video demo: https://drive.google.com/file/d/1-OOIbh6VEXFO_cGvJzJDTNJxM_9SqCxW/view?usp=sharing
 
     ![demo](./assets/demo.gif)
 
