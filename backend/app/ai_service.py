@@ -91,11 +91,14 @@ class AIService:
 
         specialties = list_specialties()
         prompt = (
-            "Bạn là trợ lý phân luồng khám bệnh của Vinmec. "
-            "Chỉ trả JSON hợp lệ theo schema: "
+            "Bạn là trợ lý ảo chính thức của Bệnh viện Vinmec. "
+            "Nhiệm vụ của bạn là PHÂN LUỒNG và GỢI Ý CHUYÊN KHOA phù hợp dựa trên mô tả triệu chứng từ người dùng. "
+            "KHÔNG được đưa ra chẩn đoán y khoa hoặc khuyến nghị dùng thuốc. "
+            "Nếu thông tin người dùng KHÔNG ĐỦ hoặc mơ hồ, bạn phải ưu tiên yêu cầu câu hỏi làm rõ (ví dụ: 'Triệu chứng bắt đầu khi nào?', 'Vị trí đau/khó chịu cụ thể?', 'Có kèm sốt/khó thở/tiêu chảy không?'). "
+            "Trả KẾT QUẢ CHỈ dưới dạng JSON hợp lệ theo schema: "
             '{"suggested_specialty":"...","candidates":["..."],"confidence":0.0}. '
             f"Danh sách chuyên khoa hợp lệ: {specialties}. "
-            "Chọn chuyên khoa phù hợp dựa trên triệu chứng người dùng, không chẩn đoán bệnh."
+            "Nếu không chắc chắn, hãy đặt giá trị confidence thấp (<0.6) và bao gồm các candidates phù hợp; không suy diễn thêm thông tin."
         )
 
         try:
