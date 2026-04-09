@@ -1,37 +1,92 @@
-# Vinmec AI Concierge - Backend + UI Prototype MVP
+# Vinmec AI Concierge (VinCare AI)
 
-Du an demo theo spec hackathon: AI tu van chuyen khoa + dat lich kham.
+AI-powered triage and booking prototype for Vinmec. The system helps users describe symptoms in natural language, routes them to a suitable specialty, and completes appointment booking through a conversational flow.
 
-Trang thai hien tai:
-- Backend FastAPI + SQLite dang la core API.
-- UI chinh dang su dung thu muc UI/chatbot-app (khong con phu thuoc luong Next.js de demo).
-- Du lieu bac si/chuyen khoa lay tu CSV that tai Data/vinmec_doctors_full.csv.
+## Architecture
 
-## 1) Kien truc tong quan
+The project is built as a backend-first MVP with a lightweight web chatbot UI.
 
-- backend: FastAPI + SQLAlchemy + SQLite
-- ai layer: OpenAI API (co fallback rule-based)
-- guardrails: emergency redirect, safe messaging, PII masking trong logs
-- metrics: triage, escalation, booking, correction events
-- data adapter: his_client doc CSV that trong Data/
-- ui: static web app tai UI/chatbot-app (HTML/CSS/JS)
+- Backend: FastAPI + SQLAlchemy + SQLite
+- AI layer: OpenAI API with rule-based fallback
+- Guardrails: emergency redirect, out-of-scope handling, safe messaging, and PII masking in logs
+- Data adapter: doctor/specialty/slot source from Vinmec website
+- Metrics: triage, escalation, booking, correction events
+- Frontend (active prototype): static HTML/CSS/JavaScript app in UI/chatbot-app
 
-## 2) Cau truc thu muc chinh
+## Directory Structure
 
 - backend/
+	- app/ (API routes, AI service, schemas, DB models, guardrails)
+	- requirements.txt
 - Data/
+	- vinmec_doctors_full.csv
 - UI/chatbot-app/
-- frontend/ (con trong repo, khong phai UI chinh cho luong demo hien tai)
-- team-spec-draft.md
+	- index.html, style.css, js/
 
-## 3) Chay backend
+## Setup
 
-Tu root repo:
+## Requirements
+
+- Python 3.10+
+- pip
+
+## Python Environment
+
+From repository root:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
+```
+
+## Environment Variables
+
+Create or update backend/.env.
+
+Recommended variables:
+
+- OPENAI_API_KEY=
+- OPENAI_MODEL=gpt-4o-mini
+- DATABASE_URL=sqlite:///./vinmec_ai.db
+- APP_ENV=dev
+- ALLOW_ORIGINS=http://127.0.0.1:5500,http://localhost:5500,http://127.0.0.1:3000,http://localhost:3000
+- LOW_CONFIDENCE_THRESHOLD=0.65
+- EMERGENCY_CONFIDENCE_THRESHOLD=0.85
+- EMERGENCY_HOTLINE=115
+- VINMEC_HOTLINE=1900 2345
+
+Notes:
+
+- If OPENAI_API_KEY is missing, the backend falls back to rule-based triage.
+- ALLOW_ORIGINS must include your frontend origin to avoid CORS errors.
+
+## API Summary
+
+Core endpoints:
+
+- GET /health
+- GET /api/meta/specialties
+- GET /api/home/highlights
+- POST /api/chat/triage
+- GET /api/slots
+- POST /api/bookings/confirm
+- POST /api/transport/choose
+- POST /api/feedback/correction
+- GET /api/metrics/summary
+
+Interactive API docs:
+
+- http://127.0.0.1:8000/docs
+
+## How to Run
+
+## Run Backend
+
+From repository root:
+
+```bash
+source .venv/bin/activate
 cd backend
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
@@ -42,60 +97,41 @@ Health check:
 curl http://127.0.0.1:8000/health
 ```
 
-## 4) Chay UI prototype
+## Run Frontend (Prototype UI)
 
-Mo them 1 terminal moi tu root repo:
+Open a second terminal from repository root:
 
 ```bash
 cd UI/chatbot-app
 python3 -m http.server 5500
 ```
 
-Mo trinh duyet tai:
+Then open:
+
 - http://127.0.0.1:5500
 
-Luu y CORS:
-- Backend can cho phep origin 127.0.0.1:5500 hoac localhost:5500 trong ALLOW_ORIGINS.
+## Main Workflow
 
-## 5) API chinh
+The current end-to-end chat flow includes:
 
-- GET /health
-- POST /api/chat/triage
-- GET /api/slots?specialty=...
-- POST /api/bookings/confirm
-- POST /api/feedback/correction
-- GET /api/meta/specialties
-- GET /api/home/highlights
-- GET /api/metrics/summary
+1. User describes symptoms.
+2. AI triage determines confidence and suggested specialty.
+3. If confidence is low, chatbot asks clarifying details before continuing.
+4. If emergency signals are detected, chatbot immediately redirects with hotline actions.
+5. Before doctor suggestion, chatbot requires user address input.
+6. Chatbot shows available doctors and slots for the selected specialty.
+7. User selects slot and submits patient name and phone to confirm booking.
+8. User selects transport mode (XanhSM or self-transport), available time, and pickup address if needed.
+9. Transport time is validated to be earlier than booked appointment time.
+10. Chatbot shows post-booking rating prompt.
 
-## 6) Bien moi truong quan trong (backend/.env)
+Additional UX capabilities already implemented:
 
-- OPENAI_API_KEY: key OpenAI (de trong van chay fallback)
-- OPENAI_MODEL: mac dinh gpt-4o-mini
-- DATABASE_URL: sqlite:///./vinmec_ai.db
-- APP_ENV: dev/prod
-- ALLOW_ORIGINS: danh sach origin cach nhau boi dau phay
-- LOW_CONFIDENCE_THRESHOLD: mac dinh 0.65
-- EMERGENCY_HOTLINE: mac dinh 115
-- VINMEC_HOTLINE: mac dinh 1900 2345
+- Featured doctor quick-book flow (including multi-specialty handling)
+- Chat panel fullscreen mode
+- Chat reset action to restart conversation cleanly
 
-## 7) Luong nghiep vu dang ho tro
+## Current Scope Notes
 
-- Triage trieu chung -> goi y chuyen khoa va slots
-- Low-confidence -> de xuat nhieu chuyen khoa de user chon
-- Correction loop -> user chon lai khoa, luu correction event
-- Emergency -> thong diep khan cap + 2 hotline (115 va 1900 2345)
-- Chon bac si + chon gio -> bat buoc nhap ho ten va so dien thoai trong chat -> moi xac nhan booking thanh cong
-- Dat lich tu card Bac si tieu bieu:
-	- Neu bac si 1 chuyen khoa: vao thang buoc chon gio
-	- Neu bac si da chuyen khoa: chatbot hien buoc chon chuyen khoa truoc, sau do vao chon gio
-- Card bac si co link ho so bac si (vinmec.com + profile endpoint)
-- Nut mo rong chat la fullscreen rieng khung chat (khong fullscreen toan bo website)
-
-## 8) Ghi chu production roadmap
-
-- thay his_client.py bang adapter goi HIS that qua REST/gRPC
-- bo sung auth (JWT + RBAC)
-- bo sung redis cho caching va queue
-- bo sung idempotency key cho booking flow
-- bo sung dashboard metrics va evaluation batch theo ngay
+- This is a working prototype for hackathon/demo usage, not a production deployment.
+- Data source is CSV-based for local simulation and can be replaced by real HIS integration.

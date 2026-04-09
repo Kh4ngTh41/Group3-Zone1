@@ -28,4 +28,4 @@ Prototype mô phỏng trợ lý AI đặt lịch khám cho Vinmec theo hội tho
 | Minh | spec + connect backend-frontend | spec-final, demo |
 | Thành | frontend + slide | slide, UI |
 | Luân | backend + prototype | backend, prototype |
-| Khánh | data + xanhsm feature | data, backend feature |
+| Khang | data + xanhsm feature | data, backend feature |
