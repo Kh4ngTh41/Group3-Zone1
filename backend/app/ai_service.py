@@ -25,6 +25,33 @@ KEYWORD_MAP = {
 }
 
 
+MEDICAL_INTENT_KEYWORDS = (
+    "trieu chung",
+    "dau",
+    "sot",
+    "ho",
+    "kho tho",
+    "buon non",
+    "non",
+    "tieu chay",
+    "tao bon",
+    "chay mau",
+    "met moi",
+    "chong mat",
+    "dau dau",
+    "ngua",
+    "phat ban",
+    "dau bung",
+    "tim dap",
+    "huyet ap",
+    "duong huyet",
+    "viem",
+    "kham",
+    "bac si",
+    "benh",
+)
+
+
 def _normalize_text(value: str) -> str:
     text = (value or "").strip().lower()
     text = unicodedata.normalize("NFD", text)
@@ -38,6 +65,20 @@ def _build_candidates(all_specialties: list[str], suggested: str, limit: int = 1
 
     rest = [s for s in all_specialties if s != suggested]
     return [suggested] + rest[: max(0, limit - 1)]
+
+
+def _has_medical_intent(symptom_text: str, specialties: list[str]) -> bool:
+    text = _normalize_text(symptom_text)
+    if not text:
+        return False
+
+    if any(_normalize_text(specialty) in text for specialty in specialties):
+        return True
+
+    if any(keyword in text for keyword in MEDICAL_INTENT_KEYWORDS):
+        return True
+
+    return any(_normalize_text(keyword) in text for keyword in KEYWORD_MAP)
 
 
 @dataclass
@@ -88,7 +129,6 @@ class AIService:
         client = self._get_client()
         if not client:
             return self._rule_based(symptom_text, fallback_used=True)
-
         specialties = list_specialties()
         prompt = f"""
             <system_prompt>
@@ -150,6 +190,9 @@ class AIService:
             return self._normalize(payload)
         except Exception:
             return self._rule_based(symptom_text, fallback_used=True)
+
+    def is_medical_triage_query(self, symptom_text: str) -> bool:
+        return _has_medical_intent(symptom_text, list_specialties())
 
     def _normalize(self, payload: dict) -> TriageResult:
         specialties = set(list_specialties())

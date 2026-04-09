@@ -1087,6 +1087,19 @@ textarea { font-family: inherit; resize: none; }
   transform-origin: center center;
 }
 
+.chat-panel.fullscreen .chat-messages {
+  padding: 22px 28px;
+}
+
+.chat-panel.fullscreen .msg-bot > div,
+.chat-panel.fullscreen .msg-user > div {
+  max-width: min(980px, 88vw);
+}
+
+.chat-panel.fullscreen .msg-user {
+  justify-content: flex-end;
+}
+
 /* Chat Header */
 .chat-header {
   background: linear-gradient(135deg, #006d7a, #00a99d);
@@ -1193,7 +1206,22 @@ textarea { font-family: inherit; resize: none; }
 }
 
 .msg-bot { flex-direction: row; }
-.msg-user { flex-direction: row-reverse; }
+.msg-user {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.msg-user > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.msg-bot > div,
+.msg-user > div {
+  min-width: 0;
+  max-width: 78%;
+}
 
 .msg-avatar-sm {
   width: 30px; height: 30px;
@@ -1208,11 +1236,13 @@ textarea { font-family: inherit; resize: none; }
 }
 
 .msg-bubble {
-  max-width: 78%;
+  max-width: 100%;
   padding: 11px 15px;
   border-radius: 18px;
   font-size: 0.88rem;
   line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .msg-bot .msg-bubble {
@@ -1320,6 +1350,28 @@ textarea { font-family: inherit; resize: none; }
 }
 .chat-specialty-btn:hover { background: var(--vin-teal-dark); }
 
+.chat-booking-form [data-transport-mode] {
+  width: auto;
+  flex: 1;
+  border: 1.5px solid transparent;
+  opacity: 0.88;
+}
+
+.chat-booking-form [data-transport-mode].selected {
+  background: linear-gradient(135deg, #006d7a, #004f59);
+  border-color: #003a42;
+  box-shadow: 0 8px 18px rgba(0, 79, 89, 0.35);
+  font-weight: 800;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.chat-booking-form [data-transport-mode]:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
 .chat-hotline-actions {
   display: grid;
   grid-template-columns: 1fr;
@@ -1367,6 +1419,9 @@ textarea { font-family: inherit; resize: none; }
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 .chat-doctor-card:hover {
   border-color: var(--vin-teal);
@@ -1384,10 +1439,19 @@ textarea { font-family: inherit; resize: none; }
   flex-shrink: 0;
   border: 2px solid var(--vin-teal-light);
 }
-.chat-doc-info { flex: 1; }
+.chat-doc-info {
+  flex: 1;
+  min-width: 0;
+}
 .chat-doc-name { font-weight: 700; font-size: 0.88rem; color: var(--text-primary); }
 .chat-doc-title { font-size: 0.75rem; color: var(--vin-teal); font-weight: 600; margin: 2px 0; }
 .chat-doc-spec { font-size: 0.73rem; color: var(--text-muted); }
+.chat-doc-name,
+.chat-doc-title,
+.chat-doc-spec {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .chat-doc-rating {
   background: var(--vin-gold);
   color: white;
@@ -1396,6 +1460,16 @@ textarea { font-family: inherit; resize: none; }
   padding: 2px 7px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+}
+
+.chat-doctor-card .chat-specialty-btn {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  flex-shrink: 0;
+  align-self: center;
+  padding-inline: 14px;
+  margin-top: 8px;
 }
 
 /* Time Slot Cards */
@@ -1433,6 +1507,52 @@ textarea { font-family: inherit; resize: none; }
 .chat-confirm-icon { font-size: 2.2rem; margin-bottom: 8px; }
 .chat-confirm-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
 .chat-confirm-detail { font-size: 0.82rem; opacity: 0.88; line-height: 1.65; }
+
+.chat-rating-wrap {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.chat-rating-card {
+  text-align: center;
+}
+
+.chat-rating-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.chat-rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.chat-rating-star {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  color: #ffd369;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.12);
+  transition: transform var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.chat-rating-star:hover {
+  transform: translateY(-1px) scale(1.06);
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.chat-rating-hint {
+  margin-top: 7px;
+  font-size: 0.73rem;
+  opacity: 0.85;
+}
 
 .chat-booking-form {
   background: linear-gradient(135deg, var(--vin-teal-light), #ffffff);
@@ -1545,6 +1665,18 @@ textarea { font-family: inherit; resize: none; }
   border-color: var(--vin-teal);
   color: var(--vin-teal);
   background: var(--vin-teal-light);
+}
+
+.reset-btn {
+  border-color: #f0c274;
+  color: #b7791f;
+  background: #fff7e8;
+}
+
+.reset-btn:hover {
+  border-color: #d6a455;
+  color: #8d5b11;
+  background: #ffe8bf;
 }
 .voice-btn.listening {
   background: var(--vin-red);
@@ -1665,6 +1797,29 @@ textarea { font-family: inherit; resize: none; }
     transform-origin: bottom center;
   }
   .chat-panel.open { transform: translateY(0); }
+
+  .chat-panel.fullscreen .chat-messages {
+    padding: 16px;
+  }
+
+  .chat-panel.fullscreen .msg-bot > div,
+  .chat-panel.fullscreen .msg-user > div {
+    max-width: 88vw;
+  }
+
+  .chat-doctor-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .chat-doctor-card .chat-doc-info {
+    min-width: 0;
+  }
+
+  .chat-doctor-card .chat-specialty-btn {
+    width: 100%;
+    min-width: 0;
+  }
 
   /* Hide desktop bubble on mobile, use FAB */
   .chat-bubble { display: none; }

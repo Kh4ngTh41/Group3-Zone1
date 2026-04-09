@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from . import models
 from .ai_service import ai_service
@@ -26,6 +27,26 @@ from .schemas import (
 
 app = FastAPI(title="Vinmec AI Concierge API", version="0.1.0")
 
+
+def _parse_hhmm_to_minutes(value: str) -> int | None:
+    text_value = (value or "").strip()
+    try:
+        parsed = datetime.strptime(text_value, "%H:%M")
+        return parsed.hour * 60 + parsed.minute
+    except ValueError:
+        return None
+
+
+def _extract_slot_minutes(slot_time: str) -> int | None:
+    text_value = (slot_time or "").strip()
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M"):
+        try:
+            parsed = datetime.strptime(text_value, fmt)
+            return parsed.hour * 60 + parsed.minute
+        except ValueError:
+            continue
+    return None
+
 @app.post("/api/transport/choose", response_model=TransportChoiceResponse)
 def choose_transport(payload: TransportChoiceRequest, db: Session = Depends(get_db)):
     booking = db.query(models.Booking).filter(models.Booking.id == payload.booking_id).first()
@@ -35,8 +56,17 @@ def choose_transport(payload: TransportChoiceRequest, db: Session = Depends(get_
     mode = (payload.transport_mode or "").strip().lower()
     if mode not in {"xanhsm", "tự đi", "tu di"}:
         raise HTTPException(status_code=400, detail="Phương tiện không hợp lệ")
-    if not (payload.available_time or "").strip():
+    available_time = (payload.available_time or "").strip()
+    if not available_time:
         raise HTTPException(status_code=400, detail="Vui lòng nhập giờ rảnh")
+
+    available_minutes = _parse_hhmm_to_minutes(available_time)
+    if available_minutes is None:
+        raise HTTPException(status_code=400, detail="Giờ rảnh không hợp lệ. Vui lòng chọn đúng định dạng HH:MM")
+
+    slot_minutes = _extract_slot_minutes(booking.slot_time)
+    if slot_minutes is not None and available_minutes >= slot_minutes:
+        raise HTTPException(status_code=400, detail="Giờ rảnh phải sớm hơn giờ khám đã đặt")
 
     normalized_mode = "tự đi" if mode == "tu di" else mode
     pickup_address = (payload.pickup_address or "").strip()
@@ -44,7 +74,7 @@ def choose_transport(payload: TransportChoiceRequest, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Vui lòng nhập địa chỉ đón khách để đặt xe XanhSM")
 
     booking.transport_mode = normalized_mode
-    booking.available_time = payload.available_time.strip()
+    booking.available_time = available_time
     booking.pickup_address = pickup_address
     db.commit()
 
@@ -153,6 +183,38 @@ def triage(payload: TriageRequest, db: Session = Depends(get_db)):
 
     db.add(models.Message(conversation_id=conversation.id, role="user", content=sanitized))
     db.commit()
+
+    if not payload.force_specialty and not ai_service.is_medical_triage_query(payload.symptom_text):
+        scope_message = safe_bot_message(
+            "Mình chỉ hỗ trợ phân luồng chuyên khoa khám bệnh. "
+            "Bạn vui lòng mô tả triệu chứng sức khỏe (ví dụ: đau bụng, sốt, ho, khó thở...) "
+            "để mình gợi ý đúng chuyên khoa."
+        )
+        db.add(models.Message(conversation_id=conversation.id, role="assistant", content=scope_message))
+        db.commit()
+
+        record_metric(
+            db,
+            "triage_request",
+            1.0,
+            {
+                "status": "clarify",
+                "specialty": None,
+                "fallback": False,
+                "reason": "out_of_scope",
+            },
+        )
+
+        return TriageResponse(
+            conversation_id=conversation.id,
+            status="clarify",
+            message=scope_message,
+            confidence=0.0,
+            suggested_specialty=None,
+            candidates=[],
+            slots=[],
+            fallback_used=False,
+        )
 
     triage_result = ai_service.triage(payload.symptom_text)
     suggested = payload.force_specialty or triage_result.suggested_specialty

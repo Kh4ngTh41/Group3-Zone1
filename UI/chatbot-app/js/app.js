@@ -25,6 +25,7 @@
   const chatInput    = $('chatInput');
   const sendBtn      = $('sendBtn');
   const voiceBtn     = $('voiceBtn');
+  const resetChatBtn = $('resetChatBtn');
   const quickReplies = $('quickReplies');
   const bnChat       = $('bnChat');
   const heroChatBtn  = $('heroChatBtn');
@@ -403,6 +404,53 @@
     if (el) el.remove();
   }
 
+  function resetConversation(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    hideTyping();
+    if (chatMessages) chatMessages.innerHTML = '';
+
+    msgCount = 0;
+    isSendingMessage = false;
+
+    if (chatInput) {
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+    }
+    if (sendBtn) sendBtn.disabled = true;
+
+    if (window.SpeechModule) {
+      window.SpeechModule.cancelSpeak();
+      if (window.SpeechModule.isListening) {
+        window.SpeechModule.stopListening();
+      }
+    }
+    if (voiceBtn) voiceBtn.classList.remove('listening');
+
+    window.ChatEngine.reset();
+    window.ChatEngine.start();
+
+    if (quickReplies) quickReplies.style.display = 'flex';
+    renderQuickReplies();
+
+    setTimeout(() => {
+      if (chatInput) chatInput.focus();
+    }, 100);
+
+    // Fallback: ensure user always sees a visible fresh-start message.
+    setTimeout(() => {
+      if (chatMessages && chatMessages.children.length === 0) {
+        const welcome = typeof window.t === 'function'
+          ? window.t('chatWelcome')
+          : 'Xin chao! Moi ban mo ta trieu chung de bat dau.';
+        appendBotMessage(welcome);
+      }
+    }, 700);
+  }
+
   function scrollToBottom() {
     requestAnimationFrame(() => {
       chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -486,6 +534,16 @@
           nameInput ? nameInput.value : '',
           phoneInput ? phoneInput.value : '',
         );
+      });
+    });
+
+    // Address form submit (before selecting doctor)
+    container.querySelectorAll('[data-address-submit]').forEach(el => {
+      el.addEventListener('click', () => {
+        const form = el.closest('[data-address-form]');
+        if (!form) return;
+        const addressInput = form.querySelector('[data-patient-address]');
+        window.ChatEngine.handleAddressSubmit(addressInput ? addressInput.value : '');
       });
     });
   }
@@ -651,6 +709,10 @@
 
     // Voice
     if (voiceBtn) voiceBtn.addEventListener('click', toggleVoice);
+    if (resetChatBtn) {
+      resetChatBtn.addEventListener('click', resetConversation);
+      resetChatBtn.addEventListener('touchstart', resetConversation, { passive: false });
+    }
 
     // Header scroll
     setupHeaderScroll();

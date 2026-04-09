@@ -6,6 +6,7 @@ window.ChatEngine = (function() {
   const STATE = {
     IDLE: 'idle',
     AWAITING_SYMPTOM: 'awaiting_symptom',
+    AWAITING_ADDRESS: 'awaiting_address',
     SHOWING_SPECIALTY: 'showing_specialty',
     SHOWING_DOCTORS: 'showing_doctors',
     SHOWING_SLOTS: 'showing_slots',
@@ -29,6 +30,8 @@ window.ChatEngine = (function() {
   let currentDoctors = [];
   let pendingFeaturedDoctor = null;
   let pendingSlot = null;
+  let patientAddress = '';
+  let pendingDoctorLeadHtml = '';
   let isSubmittingBooking = false;
   let onMessageCb = null;
   let onTypingCb = null;
@@ -209,7 +212,6 @@ window.ChatEngine = (function() {
   function buildConfirmCard(doctorName, specialty, slot) {
     const lang = window.currentLang;
     const title = lang === 'vi' ? 'Đặt lịch thành công!' : 'Booking Confirmed!';
-    const actionLabel = lang === 'vi' ? 'Đặt lịch khác' : 'Book another appointment';
     const details = lang === 'vi'
       ? `Bác sĩ: <strong>${doctorName}</strong><br>Chuyên khoa: ${specialty}<br>Thời gian: <strong>${slot}</strong><br>Địa điểm: Vinmec Times City`
       : `Doctor: <strong>${doctorName}</strong><br>Specialty: ${specialty}<br>Time: <strong>${slot}</strong><br>Location: Vinmec Times City`;
@@ -218,9 +220,22 @@ window.ChatEngine = (function() {
         <div class="chat-confirm-icon">🎉</div>
         <div class="chat-confirm-title">${title}</div>
         <div class="chat-confirm-detail">${details}</div>
-        <div style="margin-top:10px;">
-          <button class="chat-specialty-btn" data-action="book-again">${actionLabel}</button>
-        </div>
+      </div>`;
+  }
+
+  function buildRatingCard() {
+    const lang = window.currentLang;
+    const ratingTitle = lang === 'vi' ? 'Đánh giá trải nghiệm đặt lịch' : 'Rate your booking experience';
+    const ratingHint = lang === 'vi' ? 'Chọn số sao từ 1 đến 5' : 'Choose from 1 to 5 stars';
+    const stars = [1, 2, 3, 4, 5]
+      .map((value) => `<button class="chat-rating-star" data-action="rate-${value}" aria-label="${value} star">★</button>`)
+      .join('');
+
+    return `
+      <div class="chat-booking-form chat-rating-card">
+        <div class="chat-rating-title">${ratingTitle}</div>
+        <div class="chat-rating-stars">${stars}</div>
+        <div class="chat-rating-hint">${ratingHint}</div>
       </div>`;
   }
 
@@ -243,6 +258,24 @@ window.ChatEngine = (function() {
         <label class="chat-booking-label">${phoneLabel}</label>
         <input class="chat-booking-input" type="tel" data-patient-phone placeholder="${phoneLabel}" maxlength="20" />
         <button class="chat-specialty-btn" data-booking-submit="true">${submitLabel}</button>
+      </div>`;
+  }
+
+  function buildAddressForm() {
+    const lang = window.currentLang;
+    const title = lang === 'vi' ? 'Nhập địa chỉ trước khi chọn bác sĩ' : 'Enter your address before choosing a doctor';
+    const label = lang === 'vi' ? 'Địa chỉ của bạn' : 'Your address';
+    const placeholder = lang === 'vi'
+      ? 'Ví dụ: 458 Minh Khai, Hai Bà Trưng, Hà Nội'
+      : 'Example: 458 Minh Khai, Hai Ba Trung, Ha Noi';
+    const submitLabel = lang === 'vi' ? 'Tiếp tục chọn bác sĩ' : 'Continue to doctor selection';
+
+    return `
+      <div class="chat-booking-form" data-address-form="true">
+        <div class="chat-booking-form-title">${title}</div>
+        <label class="chat-booking-label">${label}</label>
+        <input class="chat-booking-input" type="text" data-patient-address placeholder="${placeholder}" value="${escapeHtml(patientAddress)}" maxlength="200" />
+        <button class="chat-specialty-btn" data-address-submit="true">${submitLabel}</button>
       </div>`;
   }
 
@@ -286,6 +319,45 @@ window.ChatEngine = (function() {
     return '';
   }
 
+  function parseTimeToMinutes(value) {
+    const text = (value || '').trim();
+    const match = text.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return null;
+    const hours = Number.parseInt(match[1], 10);
+    const minutes = Number.parseInt(match[2], 10);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+    return (hours * 60) + minutes;
+  }
+
+  function extractSlotTimeLabel(slotDateTime) {
+    const text = (slotDateTime || '').trim();
+    const match = text.match(/(\d{2}:\d{2})$/);
+    return match ? match[1] : '';
+  }
+
+  function buildAvailableTimeOptions(slotDateTime) {
+    const slotLabel = extractSlotTimeLabel(slotDateTime);
+    const slotMinutes = parseTimeToMinutes(slotLabel);
+    const options = [];
+
+    for (let hour = 6; hour <= 21; hour += 1) {
+      for (const minute of [0, 30]) {
+        const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        const valueMinutes = (hour * 60) + minute;
+        if (slotMinutes !== null && valueMinutes >= slotMinutes) {
+          continue;
+        }
+        options.push(`<option value="${label}">${label}</option>`);
+      }
+    }
+
+    if (!options.length) {
+      return '<option value="">--</option>';
+    }
+    return options.join('');
+  }
+
   async function handleMessage(text) {
     if (!text.trim()) return;
 
@@ -312,6 +384,10 @@ window.ChatEngine = (function() {
           false,
           350,
         );
+        return;
+      }
+      case STATE.AWAITING_ADDRESS: {
+        await handleAddressSubmit(text);
         return;
       }
       case STATE.IDLE:
@@ -397,17 +473,46 @@ window.ChatEngine = (function() {
       currentDoctors = groupSlotsByDoctor(slots);
       currentDoctor = null;
       pendingSlot = null;
-      state = STATE.SHOWING_DOCTORS;
-
-      const intro = window.currentLang === 'vi'
-        ? `Các bác sĩ hiện có lịch trống cho <strong>${escapeHtml(specialtyName)}</strong>:`
-        : `Available doctors for <strong>${escapeHtml(specialtyName)}</strong>:`;
-      const html = `${leadHtml ? `${leadHtml}<br><br>` : ''}${intro}<br>${buildDoctorCards(currentDoctors)}`;
-      await botReply(html, true, 550);
+      pendingDoctorLeadHtml = leadHtml;
+      patientAddress = '';
+      state = STATE.AWAITING_ADDRESS;
+      const addressPrompt = window.currentLang === 'vi'
+        ? 'Trước khi chọn bác sĩ, bạn vui lòng nhập địa chỉ để hệ thống hỗ trợ tốt hơn.'
+        : 'Before choosing a doctor, please provide your address so the system can support you better.';
+      const html = `${leadHtml ? `${leadHtml}<br><br>` : ''}${addressPrompt}<br>${buildAddressForm()}`;
+      await botReply(html, true, 500);
+      return;
     } catch (error) {
       state = STATE.AWAITING_SYMPTOM;
       await botReply(error.message || 'Không thể tải danh sách bác sĩ.', false, 550);
     }
+  }
+
+  async function showDoctorList(leadHtml = '') {
+    state = STATE.SHOWING_DOCTORS;
+    const intro = window.currentLang === 'vi'
+      ? `Các bác sĩ hiện có lịch trống cho <strong>${escapeHtml(currentSpecialty)}</strong>:`
+      : `Available doctors for <strong>${escapeHtml(currentSpecialty)}</strong>:`;
+    const html = `${leadHtml ? `${leadHtml}<br><br>` : ''}${intro}<br>${buildDoctorCards(currentDoctors)}`;
+    await botReply(html, true, 550);
+  }
+
+  async function handleAddressSubmit(address) {
+    const value = (address || '').trim();
+    if (!value) {
+      await botReply(
+        window.currentLang === 'vi'
+          ? 'Bạn vui lòng nhập địa chỉ để tiếp tục chọn bác sĩ.'
+          : 'Please provide your address to continue selecting a doctor.',
+        false,
+        300,
+      );
+      return;
+    }
+
+    patientAddress = value;
+    await showDoctorList(pendingDoctorLeadHtml);
+    pendingDoctorLeadHtml = '';
   }
 
   async function handleSpecialtySelect(specialtyName) {
@@ -515,8 +620,12 @@ window.ChatEngine = (function() {
     const option1 = lang === 'vi' ? '🚕 Đặt xe XanhSM' : '🚕 Book XanhSM car';
     const option2 = lang === 'vi' ? '🦶 Tự di chuyển' : '🦶 Self-transport';
     const timeLabel = lang === 'vi' ? 'Bạn rảnh lúc nào để đặt xe?' : 'What time are you available?';
+    const timePlaceholder = lang === 'vi' ? 'Chọn giờ rảnh' : 'Select available time';
     const addressLabel = lang === 'vi' ? 'Địa chỉ đón khách (bắt buộc nếu đặt XanhSM)' : 'Pickup address (required for XanhSM)';
     const submitLabel = lang === 'vi' ? 'Xác nhận phương tiện' : 'Confirm transport';
+    const slotDateTime = pendingSlot?.slot_time || '';
+    const slotTimeLabel = extractSlotTimeLabel(slotDateTime);
+    const timeOptions = buildAvailableTimeOptions(slotDateTime);
 
     const html = `
       <div class="chat-booking-form" data-transport-form="true">
@@ -527,11 +636,14 @@ window.ChatEngine = (function() {
         </div>
         <div style="margin:10px 0;">
           <label class="chat-booking-label">${timeLabel}</label>
-          <input class="chat-booking-input" type="text" data-available-time placeholder="08:00, 13:30, ..." maxlength="40" />
+          <select class="chat-booking-input" data-available-time>
+            <option value="">${timePlaceholder}</option>
+            ${timeOptions}
+          </select>
         </div>
         <div style="margin:10px 0;">
           <label class="chat-booking-label">${addressLabel}</label>
-          <input class="chat-booking-input" type="text" data-pickup-address placeholder="Số nhà, đường, quận/huyện..." maxlength="200" />
+          <input class="chat-booking-input" type="text" data-pickup-address placeholder="Số nhà, đường, quận/huyện..." value="${escapeHtml(patientAddress)}" maxlength="200" />
         </div>
         <button class="chat-specialty-btn" type="button" data-transport-submit="true">${submitLabel}</button>
       </div>
@@ -544,11 +656,33 @@ window.ChatEngine = (function() {
       const modeButtons = document.querySelectorAll('[data-transport-mode]');
       const submitBtn = document.querySelector('[data-transport-submit]');
 
+      const applyTransportModeState = (activeBtn) => {
+        modeButtons.forEach((b) => {
+          const isActive = b === activeBtn;
+          b.classList.toggle('selected', isActive);
+          b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+          // Apply inline fallback styles so selected state is always visible
+          // even if cached CSS or specificity conflicts occur.
+          b.style.background = isActive
+            ? 'linear-gradient(135deg, #006d7a, #004f59)'
+            : 'var(--vin-teal)';
+          b.style.border = isActive
+            ? '1.5px solid #003a42'
+            : '1.5px solid transparent';
+          b.style.fontWeight = isActive ? '800' : '600';
+          b.style.boxShadow = isActive
+            ? '0 8px 18px rgba(0, 79, 89, 0.35)'
+            : 'none';
+          b.style.opacity = isActive ? '1' : '0.88';
+          b.style.transform = isActive ? 'translateY(-1px)' : 'none';
+        });
+      };
+
       modeButtons.forEach((btn) => {
         btn.onclick = () => {
           selectedMode = (btn.getAttribute('data-transport-mode') || '').trim();
-          modeButtons.forEach((b) => b.classList.remove('selected'));
-          btn.classList.add('selected');
+          applyTransportModeState(btn);
         };
       });
 
@@ -565,6 +699,20 @@ window.ChatEngine = (function() {
         if (!availableTime) {
           await botReply(lang === 'vi' ? 'Bạn cần nhập giờ rảnh.' : 'Please enter your available time.', false, 300);
           return;
+        }
+        if (slotTimeLabel) {
+          const availableMinutes = parseTimeToMinutes(availableTime);
+          const slotMinutes = parseTimeToMinutes(slotTimeLabel);
+          if (availableMinutes === null || slotMinutes === null || availableMinutes >= slotMinutes) {
+            await botReply(
+              lang === 'vi'
+                ? `Giờ rảnh phải sớm hơn giờ khám (${slotTimeLabel}).`
+                : `Available time must be earlier than appointment time (${slotTimeLabel}).`,
+              false,
+              300,
+            );
+            return;
+          }
         }
         if (selectedMode === 'xanhsm' && !pickupAddress) {
           await botReply(lang === 'vi' ? 'Bạn vui lòng nhập địa chỉ đón khách để đặt xe XanhSM.' : 'Please provide pickup address for XanhSM booking.', false, 300);
@@ -592,6 +740,7 @@ window.ChatEngine = (function() {
               : '✅ Appointment booked successfully. Please arrive on time.');
 
           await botReply(finalMsg, false, 400);
+          await botReply(buildRatingCard(), true, 220);
         } catch (e) {
           await botReply(e.message || (lang === 'vi' ? 'Không thể lưu lựa chọn phương tiện.' : 'Could not save transport choice.'), false, 400);
         } finally {
@@ -688,12 +837,18 @@ window.ChatEngine = (function() {
   }
 
   async function handleAction(action) {
-    if (action !== 'book-again') return;
-    reset();
-    const prompt = window.currentLang === 'vi'
-      ? 'Bạn hãy mô tả triệu chứng mới để mình hỗ trợ đặt lịch tiếp nhé.'
-      : 'Please share your symptoms for the next appointment.';
-    await botReply(prompt, false, 450);
+    if (!action) return;
+
+    if (action.startsWith('rate-')) {
+      const rating = Number.parseInt(action.replace('rate-', ''), 10);
+      if (!Number.isFinite(rating) || rating < 1 || rating > 5) return;
+
+      const response = window.currentLang === 'vi'
+        ? `Cảm ơn bạn đã đánh giá <strong>${rating}/5</strong> sao. Chúc bạn nhiều sức khỏe!`
+        : `Thank you for your <strong>${rating}/5</strong>-star rating. Wishing you good health!`;
+      await botReply(response, true, 300);
+      return;
+    }
   }
 
   function start() {
@@ -712,6 +867,8 @@ window.ChatEngine = (function() {
     currentDoctors = [];
     pendingFeaturedDoctor = null;
     pendingSlot = null;
+    patientAddress = '';
+    pendingDoctorLeadHtml = '';
     isSubmittingBooking = false;
     conversationId = null;
   }
@@ -721,6 +878,7 @@ window.ChatEngine = (function() {
     handleMessage,
     handleSpecialtySelect,
     handleDoctorSelect,
+    handleAddressSubmit,
     handleSlotSelect,
     handlePatientInfoSubmit,
     handleFeaturedDoctorBooking,
