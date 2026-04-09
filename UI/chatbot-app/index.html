@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="VinCare AI – Chatbot thông minh hỗ trợ đặt lịch khám bệnh tại Vinmec. Mô tả triệu chứng, nhận gợi ý chuyên khoa và đặt lịch bác sĩ ngay." />
+  <title>VinCare AI – Đặt lịch khám thông minh | Vinmec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- GSAP Animation Library (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+  <!-- PAGE LOADER -->
+  <div class="page-loader" id="pageLoader">
+    <div class="loader-inner">
+      <div class="loader-logo">
+        <svg width="40" height="40" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#00a99d"/><path d="M14 6v16M6 14h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+      <div class="loader-text">VinCare AI</div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CURSOR -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="header-inner container">
+      <a href="#" class="logo" aria-label="VinCare AI - Trang chủ">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="28" height="28" rx="8" fill="#00a99d"/>
+            <path d="M14 6v16M6 14h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">Vin<span>Care</span> AI</span>
+      </a>
+      <nav class="nav-links" id="navLinks" aria-label="Navigation chính">
+        <a href="#services" id="nav-home" class="nav-link">Trang chủ</a>
+        <a href="#specialties" id="nav-specialties" class="nav-link">Chuyên khoa</a>
+        <a href="#doctors" id="nav-doctors" class="nav-link">Bác sĩ</a>
+        <a href="#" id="nav-booking" class="nav-link">Đặt lịch</a>
+      </nav>
+      <div class="header-actions">
+        <!-- Language Toggle -->
+        <button class="lang-btn" id="langToggle" aria-label="Chuyển ngôn ngữ">
+          <span class="lang-flag" id="langFlag">🇻🇳</span>
+          <span class="lang-label" id="langLabel">VI</span>
+        </button>
+        <!-- Theme Toggle -->
+        <button class="theme-btn" id="themeToggle" aria-label="Chuyển chế độ sáng tối">
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <button class="cta-btn header-cta" id="headerCta">
+          <span id="headerCtaText">Đặt lịch ngay</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero" id="hero">
+      <div class="hero-bg">
+        <div class="hero-blob hero-blob-1"></div>
+        <div class="hero-blob hero-blob-2"></div>
+        <div class="hero-blob hero-blob-3"></div>
+      </div>
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge" id="heroBadge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span id="heroBadgeText">AI hỗ trợ 24/7</span>
+          </div>
+          <h1 class="hero-title" id="heroTitle">
+            <span class="hero-word" data-word="0">Đặt lịch khám</span><br/>
+            <span class="gradient-text hero-word" data-word="1">thông minh</span><br/>
+            <span class="hero-word" data-word="2">cùng VinCare AI</span>
+          </h1>
+          <p class="hero-desc" id="heroDesc">Mô tả triệu chứng của bạn, AI sẽ gợi ý chuyên khoa phù hợp, danh sách bác sĩ và đặt lịch hẹn chỉ trong vài giây.</p>
+          <div class="hero-actions">
+            <button class="cta-btn cta-primary" id="heroChatBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span id="heroChatText">Chat với AI ngay</span>
+            </button>
+            <button class="cta-btn cta-secondary" id="heroLearnBtn">
+              <span id="heroLearnText">Tìm hiểu thêm</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-num" data-count="47" data-suffix="+">47+</span>
+              <span class="stat-label" id="statHospitals">Bệnh viện</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num" data-count="3000" data-suffix="+" data-prefix="">3,000+</span>
+              <span class="stat-label" id="statDoctors">Bác sĩ</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num" data-count="5" data-suffix="M+">5M+</span>
+              <span class="stat-label" id="statPatients">Bệnh nhân</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-card-float hero-card-1">
+            <div class="mini-card">
+              <div class="mini-card-icon">🩺</div>
+              <div>
+                <div class="mini-card-title" id="miniCard1Title">Lịch hẹn hôm nay</div>
+                <div class="mini-card-sub">09:30 – BS. Nguyễn Minh Tuấn</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-card-float hero-card-2">
+            <div class="mini-card">
+              <div class="mini-card-icon">✅</div>
+              <div>
+                <div class="mini-card-title" id="miniCard2Title">Đặt lịch thành công!</div>
+                <div class="mini-card-sub" id="miniCard2Sub">Tim mạch – 14:00 ngày mai</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-illustration">
+            <div class="illustration-circle">
+              <svg viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="130" cy="130" r="110" fill="#e0f5f4" />
+                <circle cx="130" cy="100" r="35" fill="#00a99d" opacity="0.15"/>
+                <!-- Doctor figure -->
+                <circle cx="130" cy="80" r="22" fill="#006d7a"/>
+                <path d="M88 170c0-23.2 18.8-42 42-42s42 18.8 42 42v10H88v-10z" fill="#00a99d"/>
+                <!-- Stethoscope -->
+                <path d="M150 95 c5 8 5 16 0 20 c-8 8-16 4-16-4" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <circle cx="134" cy="111" r="3" fill="white"/>
+                <!-- Calendar icon -->
+                <rect x="80" y="185" width="40" height="40" rx="6" fill="white" stroke="#00a99d" stroke-width="1.5"/>
+                <rect x="84" y="185" width="32" height="10" rx="3" fill="#00a99d"/>
+                <rect x="87" y="200" width="6" height="6" rx="1" fill="#00a99d"/>
+                <rect x="97" y="200" width="6" height="6" rx="1" fill="#00a99d"/>
+                <rect x="107" y="200" width="6" height="6" rx="1" fill="#ddd"/>
+                <rect x="87" y="210" width="6" height="6" rx="1" fill="#ddd"/>
+                <rect x="97" y="210" width="6" height="6" rx="1" fill="#00a99d"/>
+                <rect x="107" y="210" width="6" height="6" rx="1" fill="#00a99d"/>
+                <!-- 24/7 badge -->
+                <rect x="145" y="183" width="46" height="24" rx="12" fill="#f5a623"/>
+                <text x="168" y="199" text-anchor="middle" fill="white" font-size="11" font-weight="700" font-family="Plus Jakarta Sans">24/7</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES / SPECIALTIES SECTION -->
+    <section class="section specialties-section" id="specialties">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge" id="specialtiesBadge">Chuyên khoa</div>
+          <h2 class="section-title" id="specialtiesTitle">Chuyên khoa nổi bật</h2>
+          <p class="section-desc" id="specialtiesDesc">Hệ thống chuyên khoa toàn diện với đội ngũ bác sĩ hàng đầu Việt Nam</p>
+        </div>
+        <div class="specialties-grid" id="specialtiesGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- DOCTORS SECTION -->
+    <section class="section doctors-section" id="doctors">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge" id="doctorsBadge">Đội ngũ bác sĩ</div>
+          <h2 class="section-title" id="doctorsTitle">Bác sĩ tiêu biểu</h2>
+          <p class="section-desc" id="doctorsDesc">Đội ngũ chuyên gia đầu ngành, tận tâm vì sức khỏe của bạn</p>
+        </div>
+        <div class="doctors-grid" id="doctorsGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY VIN SECTION -->
+    <section class="section why-section" id="why">
+      <div class="why-bg container">
+        <div class="why-inner">
+          <div class="section-header">
+            <div class="section-badge" id="whyBadge">Tại sao chọn Vinmec?</div>
+            <h2 class="section-title light-title" id="whyTitle">Đẳng cấp quốc tế,<br/>tận tâm Việt Nam</h2>
+          </div>
+          <div class="why-grid">
+            <div class="why-card">
+              <div class="why-icon">🏆</div>
+              <h3 id="why1Title">Chuẩn JCI Quốc tế</h3>
+              <p id="why1Desc">Được công nhận bởi Ủy ban Y tế Quốc tế - tiêu chuẩn cao nhất thế giới</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">🤖</div>
+              <h3 id="why2Title">AI hỗ trợ chẩn đoán</h3>
+              <p id="why2Desc">Công nghệ AI tiên tiến hỗ trợ bác sĩ phân tích triệu chứng chính xác hơn</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">⚡</div>
+              <h3 id="why3Title">Đặt lịch trong 60 giây</h3>
+              <p id="why3Desc">Quy trình đặt hẹn được tối ưu hóa, không cần chờ đợi hay gọi điện</p>
+            </div>
+            <div class="why-card">
+              <div class="why-icon">🔒</div>
+              <h3 id="why4Title">Bảo mật tuyệt đối</h3>
+              <p id="why4Desc">Dữ liệu sức khỏe được mã hóa và bảo vệ theo tiêu chuẩn quốc tế</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon"><svg width="24" height="24" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#00a99d"/><path d="M14 6v16M6 14h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+          <span class="logo-text">Vin<span>Care</span> AI</span>
+        </div>
+        <p id="footerDesc">Hệ thống đặt lịch khám thông minh hàng đầu Việt Nam. Chăm sóc sức khỏe của bạn là ưu tiên hàng đầu của chúng tôi.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4 id="footerCol1">Dịch vụ</h4>
+          <a href="#">Đặt lịch khám</a>
+          <a href="#">Tư vấn online</a>
+          <a href="#">Kết quả xét nghiệm</a>
+        </div>
+        <div class="footer-col">
+          <h4 id="footerCol2">Vinmec</h4>
+          <a href="#">Về chúng tôi</a>
+          <a href="#">Hệ thống bệnh viện</a>
+          <a href="#">Tuyển dụng</a>
+        </div>
+        <div class="footer-col">
+          <h4 id="footerCol3">Hỗ trợ</h4>
+          <a href="#">Hotline: 1900 2345</a>
+          <a href="#">Email: support@vinmec.com</a>
+          <a href="#">FAQs</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <p id="footerCopy">© 2024 Vinmec International Hospital. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Mobile navigation">
+    <a href="#" class="bottom-nav-item active" id="bnHome">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span id="bnHomeLabel">Trang chủ</span>
+    </a>
+    <a href="#doctors" class="bottom-nav-item" id="bnDoctors">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="bnDoctorsLabel">Bác sĩ</span>
+    </a>
+    <button class="bottom-nav-fab" id="bnChat" aria-label="Chat với AI">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <a href="#specialties" class="bottom-nav-item" id="bnSpecialties">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span id="bnSpecialtiesLabel">Chuyên khoa</span>
+    </a>
+    <a href="#" class="bottom-nav-item" id="bnProfile">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="bnProfileLabel">Hồ sơ</span>
+    </a>
+  </nav>
+
+  <!-- SUPPORT HOTLINE FAB (Desktop only – hidden on mobile) -->
+  <a class="support-fab" id="supportFab"
+     href="tel:19002345"
+     data-tooltip="Hotline: 1900 2345"
+     aria-label="Hotline chăm sóc khách hàng 1900 2345">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round">
+      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15z"/>
+    </svg>
+  </a>
+
+  <!-- FLOATING CHAT BUBBLE (Desktop AI Chat) -->
+  <button class="chat-bubble" id="chatBubble" aria-label="Mở chat AI">
+    <div class="chat-bubble-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <div class="chat-bubble-pulse"></div>
+    <div class="chat-bubble-badge">AI</div>
+  </button>
+
+  <!-- CHAT PANEL -->
+  <div class="chat-overlay" id="chatOverlay"></div>
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-modal="true" aria-label="VinCare AI Chatbot">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">
+          <svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="white" opacity="0.2"/><path d="M14 6v16M6 14h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="chat-header-name">VinCare AI</div>
+          <div class="chat-header-status">
+            <span class="status-dot"></span>
+            <span id="chatStatusText">Luôn sẵn sàng hỗ trợ</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="chat-action-btn" id="chatLangToggle" aria-label="Ngôn ngữ chat">
+          <span id="chatLangFlag">🇻🇳</span>
+        </button>
+        <button class="chat-action-btn" id="chatMinimize" aria-label="Thu nhỏ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="chat-action-btn" id="chatClose" aria-label="Đóng chat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Quick Replies -->
+    <div class="quick-replies" id="quickReplies">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input-area">
+      <button class="voice-btn" id="voiceBtn" aria-label="Ghi âm giọng nói">
+        <svg class="voice-icon-mic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        <svg class="voice-icon-stop" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <div class="chat-input-wrap">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          rows="1"
+          placeholder="Mô tả triệu chứng của bạn..."
+          aria-label="Nhập tin nhắn"
+          maxlength="500"
+        ></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" aria-label="Gửi tin nhắn" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- JS Modules -->
+  <script src="js/i18n.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/animations.js"></script>
+</body>
+</html>
